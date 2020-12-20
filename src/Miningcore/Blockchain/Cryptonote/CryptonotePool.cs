@@ -170,6 +170,7 @@ namespace Miningcore.Blockchain.Cryptonote
                 Blob = blob,
                 Target = target,
                 Height = job.Height,
+                SeedHash = job.SeedHash,
             };
 
             // update context
@@ -221,15 +222,19 @@ namespace Miningcore.Blockchain.Cryptonote
                 }
 
                 // dupe check
-                var nonceLower = submitRequest.Nonce.ToLower();
+                if(!job.Submissions.TryAdd(submitRequest.Nonce, true))
+                    throw new StratumException(StratumError.MinusOne, "duplicate share");
+                // -->>
+                //var nonceLower = submitRequest.Nonce.ToLower();
 
-                lock(job)
-                {
-                    if(job.Submissions.Contains(nonceLower))
-                        throw new StratumException(StratumError.MinusOne, "duplicate share");
+                //lock(job)
+                //{
+                //    if(job.Submissions.Contains(nonceLower))
+                //        throw new StratumException(StratumError.MinusOne, "duplicate share");
 
-                    job.Submissions.Add(nonceLower);
-                }
+                //    job.Submissions.Add(nonceLower);
+                //}
+                //<--
 
                 var poolEndpoint = poolConfig.Ports[client.PoolEndpoint.Port];
 

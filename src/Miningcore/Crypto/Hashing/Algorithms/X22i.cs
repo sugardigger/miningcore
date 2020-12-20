@@ -18,30 +18,25 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-using Newtonsoft.Json;
+using System;
+using Miningcore.Contracts;
+using Miningcore.Native;
 
-namespace Miningcore.Blockchain.Cryptonote.StratumResponses
+namespace Miningcore.Crypto.Hashing.Algorithms
 {
-    public class CryptonoteJobParams
+    public unsafe class X22I : IHashAlgorithm
     {
-        [JsonProperty("job_id")]
-        public string JobId { get; set; }
+        public void Digest(ReadOnlySpan<byte> data, Span<byte> result, params object[] extra)
+        {
+            Contract.Requires<ArgumentException>(result.Length >= 32, $"{nameof(result)} must be greater or equal 32 bytes");
 
-        public string Blob { get; set; }
-        public string Target { get; set; }
-
-        [JsonProperty("seed_hash")]
-        public string SeedHash { get; set; }
-
-        /// <summary>
-        /// Introduced for CNv4 (aka CryptonightR)
-        /// </summary>
-        public ulong Height { get; set; }
-    }
-
-    public class CryptonoteLoginResponse : CryptonoteResponseBase
-    {
-        public string Id { get; set; }
-        public CryptonoteJobParams Job { get; set; }
+            fixed (byte* input = data)
+            {
+                fixed (byte* output = result)
+                {
+                    LibMultihash.x22i(input, output, (uint) data.Length);
+                }
+            }
+        }
     }
 }
