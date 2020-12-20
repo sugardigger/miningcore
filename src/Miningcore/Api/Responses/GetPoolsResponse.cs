@@ -73,6 +73,8 @@ namespace Miningcore.Api.Responses
         public BlockchainStats NetworkStats { get; set; }
         public MinerPerformanceStats[] TopMiners { get; set; }
         public decimal TotalPaid { get; set; }
+        public uint TotalBlocks { get; set; }
+        public DateTime? LastPoolBlockTime { get; set; }
     }
 
     public class GetPoolsResponse

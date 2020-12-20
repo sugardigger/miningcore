@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -37,7 +38,7 @@ namespace Miningcore.Blockchain.Bitcoin
         protected PoolConfig poolConfig;
         protected BitcoinTemplate coin;
         private BitcoinTemplate.BitcoinNetworkParams networkParams;
-        protected readonly HashSet<string> submissions = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        protected readonly ConcurrentDictionary<string, bool> submissions = new ConcurrentDictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
         protected uint256 blockTargetValue;
         protected byte[] coinbaseFinal;
         protected string coinbaseFinalHex;
@@ -92,9 +93,7 @@ namespace Miningcore.Blockchain.Bitcoin
                 scriptSigFinalBytes.Length);
 
             // output transaction
-            txOut = coin.HasMasterNodes ?
-                CreateMasternodeOutputTransaction() :
-                (coin.HasPayee ? CreatePayeeOutputTransaction() : CreateOutputTransaction());
+            txOut = CreateOutputTransaction();
 
             // build coinbase initial
             using(var stream = new MemoryStream())
@@ -244,28 +243,29 @@ namespace Miningcore.Blockchain.Bitcoin
 
             var tx = Transaction.Create(network);
 
+            if(coin.HasPayee)
+                rewardToPool = CreatePayeeOutput(tx, rewardToPool);
+
+            if(coin.HasMasterNodes)
+                rewardToPool = CreateMasternodeOutputs(tx, rewardToPool);
+
+            // Remaining amount goes to pool
             tx.Outputs.Add(rewardToPool, poolAddressDestination);
 
             return tx;
         }
 
-        protected virtual Transaction CreatePayeeOutputTransaction()
+        protected virtual Money CreatePayeeOutput(Transaction tx, Money reward)
         {
-            rewardToPool = new Money(BlockTemplate.CoinbaseValue, MoneyUnit.Satoshi);
-
-            var tx = Transaction.Create(network);
-
-            if(payeeParameters?.PayeeAmount > 0)
+            if(payeeParameters?.PayeeAmount != null && payeeParameters.PayeeAmount.Value > 0)
             {
                 var payeeReward = new Money(payeeParameters.PayeeAmount.Value, MoneyUnit.Satoshi);
-                rewardToPool -= payeeReward;
+                reward -= payeeReward;
 
                 tx.Outputs.Add(payeeReward, BitcoinUtils.AddressToDestination(payeeParameters.Payee, network));
             }
 
-            tx.Outputs.Insert(0, new TxOut(rewardToPool, poolAddressDestination));
-
-            return tx;
+            return reward;
         }
 
         protected bool RegisterSubmit(string extraNonce1, string extraNonce2, string nTime, string nonce)
@@ -438,21 +438,21 @@ namespace Miningcore.Blockchain.Bitcoin
 
         protected MasterNodeBlockTemplateExtra masterNodeParameters;
 
-        protected virtual Transaction CreateMasternodeOutputTransaction()
-        {
-            var blockReward = new Money(BlockTemplate.CoinbaseValue, MoneyUnit.Satoshi);
-            rewardToPool = new Money(BlockTemplate.CoinbaseValue, MoneyUnit.Satoshi);
+       // protected virtual Transaction CreateMasternodeOutputTransaction()
+       // {
+       //     var blockReward = new Money(BlockTemplate.CoinbaseValue, MoneyUnit.Satoshi);
+       //     rewardToPool = new Money(BlockTemplate.CoinbaseValue, MoneyUnit.Satoshi);
 
-            var tx = Transaction.Create(network);
+       //     var tx = Transaction.Create(network);
 
             // outputs
-            rewardToPool = CreateMasternodeOutputs(tx, blockReward);
+       //     rewardToPool = CreateMasternodeOutputs(tx, blockReward);
 
             // Finally distribute remaining funds to pool
-            tx.Outputs.Insert(0, new TxOut(rewardToPool, poolAddressDestination));
+       //     tx.Outputs.Insert(0, new TxOut(rewardToPool, poolAddressDestination));
 
-            return tx;
-        }
+       //     return tx;
+       // }
 
         protected virtual Money CreateMasternodeOutputs(Transaction tx, Money reward)
         {
@@ -470,13 +470,13 @@ namespace Miningcore.Blockchain.Bitcoin
                 {
                     if(!string.IsNullOrEmpty(masterNode.Payee))
                     {
-                        var payeeAddress = BitcoinUtils.AddressToDestination(masterNode.Payee, network);
+                        var payeeDestination = BitcoinUtils.AddressToDestination(masterNode.Payee, network);
                         var payeeReward = masterNode.Amount;
 
                         reward -= payeeReward;
-                        rewardToPool -= payeeReward;
+                        //rewardToPool -= payeeReward;
 
-                        tx.Outputs.Add(payeeReward, payeeAddress);
+                        tx.Outputs.Add(payeeReward, payeeDestination);
                     }
                 }
             }
@@ -489,19 +489,19 @@ namespace Miningcore.Blockchain.Bitcoin
                     var payeeReward = superBlock.Amount;
 
                     reward -= payeeReward;
-                    rewardToPool -= payeeReward;
+                    //rewardToPool -= payeeReward;
 
                     tx.Outputs.Add(payeeReward, payeeAddress);
                 }
             }
 
-            if(!string.IsNullOrEmpty(masterNodeParameters.Payee))
+            if(!coin.HasPayee && !string.IsNullOrEmpty(masterNodeParameters.Payee))
             {
                 var payeeAddress = BitcoinUtils.AddressToDestination(masterNodeParameters.Payee, network);
                 var payeeReward = masterNodeParameters.PayeeAmount ?? (reward / 5);
 
                 reward -= payeeReward;
-                rewardToPool -= payeeReward;
+                //rewardToPool -= payeeReward;
 
                 tx.Outputs.Add(payeeReward, payeeAddress);
             }
