@@ -270,20 +270,31 @@ namespace Miningcore.Blockchain.Bitcoin
 
         protected bool RegisterSubmit(string extraNonce1, string extraNonce2, string nTime, string nonce)
         {
-            var key = new StringBuilder()
-                .Append(extraNonce1)
-                .Append(extraNonce2.ToLower()) // lowercase as we don't want to accept case-sensitive values as valid.
-                .Append(nTime)
-                .Append(nonce.ToLower()) // lowercase as we don't want to accept case-sensitive values as valid.
-                .ToString();
-
-            lock(submissions)
+             lock(submissions)
             {
-                if(submissions.Contains(key))
-                    return false;
+                // -->> MinerNL
+                var key = new StringBuilder()
+                    .Append(extraNonce1)
+                    .Append(extraNonce2.ToLower()) // lowercase as we don't want to accept case-sensitive values as valid.
+                    .Append(nTime)
+                    .Append(nonce.ToLower()) // lowercase as we don't want to accept case-sensitive values as valid.
+                    .ToString();
 
-                submissions.Add(key);
-                return true;
+                if(submissions.TryAdd(key, true))
+                {
+                    return true;
+                }
+                else
+                {
+                    throw new StratumException(StratumError.MinusOne, "duplicate share");
+                }
+                
+                //if(submissions.Contains(key))
+                //    return false;
+
+                //submissions.Add(key);
+                //return true;
+                // <<--
             }
         }
 

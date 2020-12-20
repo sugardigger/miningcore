@@ -285,12 +285,23 @@ namespace Miningcore.Blockchain.Equihash
         {
             lock(submissions)
             {
+                // -->> MinerNL
                 var key = nonce.ToLower() + solution.ToLower();
-                if(submissions.Contains(key))
-                    return false;
+                if(submissions.TryAdd(key, true))
+                {
+                    return true;
+                }
+                else
+                {
+                    throw new StratumException(StratumError.MinusOne, "duplicate share");
+                }
+                    
+                //if(submissions.Contains(key))
+                //    return false;
 
-                submissions.Add(key);
-                return true;
+                //submissions.Add(key);
+                //return true;
+                // <<--
             }
         }
 

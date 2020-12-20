@@ -2,7 +2,7 @@ using Autofac;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
-using Microsoft.AspNetCore.Mvc.Internal;
+using Microsoft.AspNetCore.Mvc.ActionConstraints;
 using Miningcore.Api.Extensions;
 using Miningcore.Api.Responses;
 using Miningcore.Blockchain;
