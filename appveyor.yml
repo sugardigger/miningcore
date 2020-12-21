@@ -26,8 +26,8 @@ build_script:
   - sh: (cd bin/Release/netcoreapp3.1 && mkdir miningcore && cp -r publish/* miningcore && tar cf miningcore-linux-ubuntu-x64.tar.gz miningcore && appveyor PushArtifact miningcore-linux-ubuntu-x64.tar.gz)
   - cmd: cd bin\Release\netcoreapp3.1 && mkdir miningcore && xcopy publish\* miningcore /S && 7z a miningcore-win-x64.zip miningcore && appveyor PushArtifact miningcore-win-x64.zip && cd ..\..\..
   - # Build Tests
-  - cd ../Miningcore.Tests
-  - dotnet build -c Release --framework netcoreapp3.1
+  - # cd ../Miningcore.Tests
+  - # dotnet build -c Release --framework netcoreapp3.1
 
 #---------------------------------#
 #       tests configuration       #
@@ -35,7 +35,7 @@ build_script:
 
 # to run tests again only selected assemblies and/or categories
 test_script:
- - dotnet test -c Release --no-build
+ - # dotnet test -c Release --no-build
 
 #---------------------------------#
 #         notifications           #
@@ -43,7 +43,7 @@ test_script:
 
 notifications:
   # Webhook
-  - provider: Webhook
-    url: https://registry.hub.docker.com/u/coinfoundry/miningcore-docker/trigger/5cea19ab-b489-4f7c-9fb2-da4112c51e66/
-    on_build_success: true
-    on_build_failure: false
+  - #provider: Webhook
+    #url: https://registry.hub.docker.com/u/coinfoundry/miningcore-docker/trigger/5cea19ab-b489-4f7c-9fb2-da4112c51e66/
+    #on_build_success: true
+    #on_build_failure: false
