@@ -21,6 +21,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 using System;
 using System.Linq;
 using System.Threading;
+using Microsoft.Extensions.Logging;
 using Miningcore.Blockchain.Cryptonote.DaemonResponses;
 using Miningcore.Configuration;
 using Miningcore.Extensions;
@@ -28,6 +29,7 @@ using Miningcore.Native;
 using Miningcore.Stratum;
 using Miningcore.Util;
 using NBitcoin.BouncyCastle.Math;
+using NLog;
 using static Miningcore.Native.LibCryptonight;
 using Contract = Miningcore.Contracts.Contract;
 
@@ -201,6 +203,8 @@ namespace Miningcore.Blockchain.Cryptonote
                         break;
                 }
             }
+
+            Console.WriteLine("Variant : {0}", variant);
 
             // hash it
             Span<byte> headerHash = stackalloc byte[32];
