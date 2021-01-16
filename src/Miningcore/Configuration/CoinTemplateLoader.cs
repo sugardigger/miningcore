@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Autofac;
@@ -22,6 +22,8 @@ namespace Miningcore.Configuration
 
                 foreach(var o in jo)
                 {
+                    //logger.Info($"Processing coin template for:{o.Key}");
+
                     if(o.Value.Type != JTokenType.Object)
                         logger.ThrowLogPoolStartupException("Invalid coin-template file: dictionary of coin-templates expected");
 
@@ -76,6 +78,8 @@ namespace Miningcore.Configuration
                         logger.Warn($"Redefinition of coin '{coinId}' in file {filename}. First seen in {result[coinId].Source}");
 
                     result[coinId] = definition.Value;
+
+                    logger.Info(message: $"Processing coin: {coinId} {definition.Value.Symbol} | {definition.Value.Family} |  {definition.Value.GetAlgorithmName()}");
                 }
             }
 
