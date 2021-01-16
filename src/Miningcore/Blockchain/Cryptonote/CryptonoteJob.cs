@@ -65,6 +65,10 @@ namespace Miningcore.Blockchain.Cryptonote
                 case CryptonightHashType.Heavy:
                     hashFunc = LibCryptonight.CryptonightHeavy;
                     break;
+
+                case CryptonightHashType.RandomX:
+                    hashFunc = LibCryptonight.RandomX;
+                    break;
             }
         }
 
@@ -72,7 +76,7 @@ namespace Miningcore.Blockchain.Cryptonote
         private readonly byte[] seedHashBytes;
         private int extraNonce;
         private readonly CryptonoteCoinTemplate coin;
-        private LibCryptonight.CryptonightHash hashFunc;
+        private readonly LibCryptonight.CryptonightHash hashFunc;
 
         private void PrepareBlobTemplate(byte[] instanceId)
         {
@@ -180,19 +184,12 @@ namespace Miningcore.Blockchain.Cryptonote
                 switch(coin.Hash)
                 {
                     case CryptonightHashType.Normal:
-                        if(blobConverted[0] >= 12)
-                        {
-                            hashFunc = LibCryptonight.RandomX;
-                            variant = CryptonightVariant.VARIANT_0;
-                        }
-
-                        else
-                        {
-                            variant = (blobConverted[0] >= 10) ? CryptonightVariant.VARIANT_4 :
-                                ((blobConverted[0] >= 8) ? CryptonightVariant.VARIANT_2 :
-                                ((blobConverted[0] == 7) ? CryptonightVariant.VARIANT_1 :
-                                CryptonightVariant.VARIANT_0));
-                        }
+                        variant = CryptonightVariant.VARIANT_0;
+                        if(blobConverted[0] >= 12) { variant = CryptonightVariant.VARIANT_0; }
+                        if(blobConverted[0] >= 12) { variant = CryptonightVariant.VARIANT_0; }
+                        if(blobConverted[0] >= 10) { variant = CryptonightVariant.VARIANT_4; }
+                        if(blobConverted[0] >= 8)  { variant = CryptonightVariant.VARIANT_2; }
+                        if(blobConverted[0] == 7)  { variant = CryptonightVariant.VARIANT_1; }
                         break;
 
                     case CryptonightHashType.Lite:
