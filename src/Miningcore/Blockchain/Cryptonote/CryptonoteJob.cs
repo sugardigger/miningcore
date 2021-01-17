@@ -201,6 +201,10 @@ namespace Miningcore.Blockchain.Cryptonote
                     case CryptonightHashType.Heavy:
                         variant = CryptonightVariant.VARIANT_0;
                         break;
+                    default:
+                        Console.WriteLine("Default VARIANT_0 used");
+                        variant = CryptonightVariant.VARIANT_0;
+                        break;
                 }
             }
 
