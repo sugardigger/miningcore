@@ -63,6 +63,8 @@ namespace Miningcore.Configuration
                 NullValueHandling = NullValueHandling.Ignore,
             };
 
+            logger.Info("-----------------------------------------------------------------");
+
             var result = new Dictionary<string, CoinTemplate>();
 
             foreach(var filename in coinDefs)
@@ -82,7 +84,7 @@ namespace Miningcore.Configuration
                     logger.Info(message: $"Processing coin: {coinId} {definition.Value.Symbol} | {definition.Value.Family} |  {definition.Value.GetAlgorithmName()}");
                 }
             }
-
+            logger.Info("-----------------------------------------------------------------");
             return result;
         }
     }
