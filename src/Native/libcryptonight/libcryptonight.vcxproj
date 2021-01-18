@@ -222,8 +222,6 @@
     <ClCompile Include="xmrig/crypto/defyx/yescrypt-best.c" />
     <ClCompile Include="xmrig/crypto/defyx/sha256.c" />
     <ClCompile Include="xmrig/crypto/cn/r/CryptonightR_gen.cpp" />
-    <ClCompile Include="xmrig/crypto/cn/gpu/cn_gpu_avx.cpp" />
-    <ClCompile Include="xmrig/crypto/cn/gpu/cn_gpu_ssse3.cpp" />
     <ClCompile Include="xmrig/crypto/randomx/jit_compiler_x86.cpp" />
     <ClCompile Include="xmrig\crypto\common\VirtualMemory_win.cpp" />
     <None Include="Makefile" />
