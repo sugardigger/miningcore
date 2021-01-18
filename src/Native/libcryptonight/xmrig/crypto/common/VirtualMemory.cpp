@@ -1,14 +1,7 @@
 /* XMRig
- * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
- * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
- * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
- * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
- * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2018-2019 tevador     <tevador@gmail.com>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2020 tevador     <tevador@gmail.com>
+ * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -27,6 +20,7 @@
 
 #include "crypto/common/VirtualMemory.h"
 #include "backend/cpu/Cpu.h"
+#include "base/io/log/Log.h"
 #include "crypto/common/MemoryPool.h"
 #include "crypto/common/portable/mm_malloc.h"
 
@@ -48,8 +42,9 @@ static std::mutex mutex;
 } // namespace xmrig
 
 
-xmrig::VirtualMemory::VirtualMemory(size_t size, bool hugePages, bool usePool, uint32_t node, size_t alignSize) :
+xmrig::VirtualMemory::VirtualMemory(size_t size, bool hugePages, bool oneGbPages, bool usePool, uint32_t node, size_t alignSize) :
     m_size(align(size)),
+    m_capacity(m_size),
     m_node(node)
 {
     if (usePool) {
@@ -65,6 +60,11 @@ xmrig::VirtualMemory::VirtualMemory(size_t size, bool hugePages, bool usePool, u
 
             return;
         }
+    }
+
+    if (oneGbPages && allocateOneGbPagesMemory()) {
+        m_capacity = align(size, 1ULL << 30);
+        return;
     }
 
     if (hugePages && allocateLargePagesMemory()) {
@@ -85,12 +85,18 @@ xmrig::VirtualMemory::~VirtualMemory()
         std::lock_guard<std::mutex> lock(mutex);
         pool->release(m_node);
     }
-    else if (isHugePages()) {
+    else if (isHugePages() || isOneGbPages()) {
         freeLargePagesMemory();
     }
     else {
         _mm_free(m_scratchpad);
     }
+}
+
+
+xmrig::HugePagesInfo xmrig::VirtualMemory::hugePages() const
+{
+    return { this };
 }
 
 
@@ -111,7 +117,7 @@ void xmrig::VirtualMemory::destroy()
 void xmrig::VirtualMemory::init(size_t poolSize, bool hugePages)
 {
     if (!pool) {
-        osInit();
+        osInit(hugePages);
     }
 
 #   ifdef XMRIG_FEATURE_HWLOC

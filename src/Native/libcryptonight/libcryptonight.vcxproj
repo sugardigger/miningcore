@@ -176,8 +176,8 @@
     <ClCompile Include="xmrig/crypto/cn/c_groestl.c" />
     <ClCompile Include="xmrig/crypto/cn/c_jh.c" />
     <ClCompile Include="xmrig/crypto/cn/c_skein.c" />
-    <ClCompile Include="xmrig/crypto/common/keccak.cpp" />
-    <ClCompile Include="xmrig-override/crypto/common/Algorithm.cpp" />
+    <ClCompile Include="xmrig/base/crypto/keccak.cpp" />
+    <ClCompile Include="xmrig/base/crypto/Algorithm.cpp" />
     <ClCompile Include="xmrig/crypto/cn/CnCtx.cpp" />
     <ClCompile Include="xmrig/crypto/cn/CnHash.cpp" />
     <ClCompile Include="xmrig/crypto/common/MemoryPool.cpp" />
@@ -201,6 +201,7 @@
     <ClCompile Include="xmrig/crypto/randomx/virtual_machine.cpp" />
     <ClCompile Include="xmrig/crypto/randomx/vm_compiled_light.cpp" />
     <ClCompile Include="xmrig/crypto/randomx/blake2/blake2b.c" />
+	<ClCompile Include="xmrig/crypto/rx/RxCache.cpp" />
     <ClCompile Include="xmrig/3rdparty/argon2/lib/argon2.c" />
     <ClCompile Include="xmrig/3rdparty/argon2/lib/core.c" />
     <ClCompile Include="xmrig/3rdparty/argon2/lib/encoding.c" />
