@@ -41,9 +41,7 @@ xmrig::Algorithm::Family xmrig::Algorithm::family(Id id)
     case CN_RWZ:
     case CN_ZLS:
     case CN_DOUBLE:
-#   ifdef XMRIG_ALGO_CN_GPU
-    case CN_GPU:
-#   endif
+	case CN_CCX:
         return CN;
 
 #   ifdef XMRIG_ALGO_CN_LITE
@@ -61,22 +59,36 @@ xmrig::Algorithm::Family xmrig::Algorithm::family(Id id)
 
 #   ifdef XMRIG_ALGO_CN_PICO
     case CN_PICO_0:
+	case CN_PICO_TLO:
         return CN_PICO;
 #   endif
 
 #   ifdef XMRIG_ALGO_RANDOMX
     case RX_0:
     case RX_WOW:
+    case RX_ARQ:
+    case RX_SFX:
+    case RX_KEVA:
     case RX_LOKI:
     case DEFYX:
-    case RX_ARQ:
         return RANDOM_X;
 #   endif
 
 #   ifdef XMRIG_ALGO_ARGON2
     case AR2_CHUKWA:
+	case AR2_CHUKWA_V2:
     case AR2_WRKZ:
         return ARGON2;
+#   endif
+
+#   ifdef XMRIG_ALGO_ASTROBWT
+    case ASTROBWT_DERO:
+        return ASTROBWT;
+#   endif
+
+#   ifdef XMRIG_ALGO_KAWPOW
+    case KAWPOW_RVN:
+        return KAWPOW;
 #   endif
 
     default:

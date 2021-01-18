@@ -27,7 +27,6 @@
 #define XMRIG_ALGORITHM_H
 
 
-#define XMRIG_ALGO_CN_GPU   1
 #define XMRIG_ALGO_CN_LITE  1
 #define XMRIG_ALGO_CN_HEAVY 1
 #define XMRIG_ALGO_CN_PICO  1
@@ -54,20 +53,24 @@ public:
         CN_RWZ,        // "cn/rwz"           CryptoNight variant 2 with 3/4 iterations and reversed shuffle operation (Graft).
         CN_ZLS,        // "cn/zls"           CryptoNight variant 2 with 3/4 iterations (Zelerius).
         CN_DOUBLE,     // "cn/double"        CryptoNight variant 2 with double iterations (X-CASH).
-        CN_GPU,        // "cn/gpu"           CryptoNight-GPU (Ryo).
         CN_LITE_0,     // "cn-lite/0"        CryptoNight-Lite variant 0.
         CN_LITE_1,     // "cn-lite/1"        CryptoNight-Lite variant 1.
         CN_HEAVY_0,    // "cn-heavy/0"       CryptoNight-Heavy (4 MB).
         CN_HEAVY_TUBE, // "cn-heavy/tube"    CryptoNight-Heavy (modified, TUBE only).
         CN_HEAVY_XHV,  // "cn-heavy/xhv"     CryptoNight-Heavy (modified, Haven Protocol only).
-        CN_PICO_0,     // "cn-pico"          CryptoNight Turtle (TRTL)
+        CN_PICO_0,     // "cn-pico"          CryptoNight-Pico
+        CN_PICO_TLO,   // "cn-pico/tlo"      CryptoNight-Pico (TLO)
+        CN_CCX,        // "cn/ccx"           Conceal (CCX)
         RX_0,          // "rx/0"             RandomX (reference configuration).
         RX_WOW,        // "rx/wow"           RandomWOW (Wownero).
-        RX_LOKI,       // "rx/loki"          RandomXL (Loki).
-        DEFYX,         // "defyx"            DefyX (Scala).
         RX_ARQ,        // "rx/arq"           RandomARQ (Arqma).
+        RX_SFX,        // "rx/sfx"           RandomSFX (Safex Cash).
+        RX_KEVA,       // "rx/keva"          RandomKEVA (Keva).
         AR2_CHUKWA,    // "argon2/chukwa"    Argon2id (Chukwa).
+        AR2_CHUKWA_V2, // "argon2/chukwav2"  Argon2id (Chukwa v2).
         AR2_WRKZ,      // "argon2/wrkz"      Argon2id (WRKZ)
+        ASTROBWT_DERO, // "astrobwt"         AstroBWT (Dero)
+        KAWPOW_RVN,    // "kawpow/rvn"       KawPow (RVN)
         MAX
     };
 
@@ -78,9 +81,11 @@ public:
         CN_HEAVY,
         CN_PICO,
         RANDOM_X,
-        ARGON2
+        ARGON2,
+        ASTROBWT,
+        KAWPOW
     };
-
+	
     inline Algorithm()                                     {}
     inline Algorithm(Id id) : m_id(id)                     {}
 
