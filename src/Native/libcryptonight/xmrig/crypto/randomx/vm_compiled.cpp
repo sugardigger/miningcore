@@ -1,7 +1,5 @@
 /*
-Copyright (c) 2018-2020, tevador    <tevador@gmail.com>
-Copyright (c) 2019-2020, SChernykh  <https://github.com/SChernykh>
-Copyright (c) 2019-2020, XMRig      <https://github.com/xmrig>, <support@xmrig.com>
+Copyright (c) 2018-2019, tevador <tevador@gmail.com>
 
 All rights reserved.
 
@@ -30,37 +28,31 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "crypto/randomx/vm_compiled.hpp"
 #include "crypto/randomx/common.hpp"
-#include "crypto/rx/Profiler.h"
 
 namespace randomx {
 
 	static_assert(sizeof(MemoryRegisters) == 2 * sizeof(addr_t) + sizeof(uintptr_t), "Invalid alignment of struct randomx::MemoryRegisters");
 	static_assert(sizeof(RegisterFile) == 256, "Invalid alignment of struct randomx::RegisterFile");
 
-	template<int softAes>
+	template<bool softAes>
 	void CompiledVm<softAes>::setDataset(randomx_dataset* dataset) {
 		datasetPtr = dataset;
 	}
 
-	template<int softAes>
+	template<bool softAes>
 	void CompiledVm<softAes>::run(void* seed) {
-		PROFILE_SCOPE(RandomX_run);
-
-		compiler.prepare();
 		VmBase<softAes>::generateProgram(seed);
 		randomx_vm::initialize();
-		compiler.generateProgram(program, config, randomx_vm::getFlags());
+		compiler.generateProgram(program, config);
 		mem.memory = datasetPtr->memory + datasetOffset;
 		execute();
 	}
 
-	template<int softAes>
+	template<bool softAes>
 	void CompiledVm<softAes>::execute() {
-		PROFILE_SCOPE(RandomX_JIT_execute);
-
-#		ifdef XMRIG_ARM
+#ifdef XMRIG_ARM
 		memcpy(reg.f, config.eMask, sizeof(config.eMask));
-#		endif
+#endif
 		compiler.getProgramFunc()(reg, mem, scratchpad, RandomX_CurrentConfig.ProgramIterations);
 	}
 

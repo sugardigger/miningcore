@@ -37,6 +37,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "nist5.h"
 #include "x15.h"
 #include "x17.h"
+#include "x22i.h"
 #include "fresh.h"
 #include "dcrypt.h"
 #include "jh.h"
@@ -52,7 +53,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "libethash/sha3.h"
 #include "libethash/internal.h"
 #include "libethash/ethash.h"
-#include "verushash/verus_hash.h"
 
 extern "C" bool ethash_get_default_dirname(char* strbuf, size_t buffsize);
 
@@ -224,6 +224,11 @@ extern "C" MODULE_API void x21s_export(const char* input, char* output, uint32_t
 	x21s_hash(input, output, input_len);
 }
 
+extern "C" MODULE_API void x22i_export(const char* input, char* output, uint32_t input_len)
+{
+    x22i_hash(input, output, input_len);
+}
+
 extern "C" MODULE_API void x25x_export(const char* input, char* output, uint32_t input_len)
 {
     x25x_hash(input, output, input_len);
@@ -351,16 +356,3 @@ extern "C" MODULE_API bool ethash_get_default_dirname_export(char *buf, size_t b
 {
 	return ethash_get_default_dirname(buf, buf_size);
 }
-
-extern "C" MODULE_API void verushash_export(const char* input, char* output, int input_len)
-{
-    
-	CVerusHashV2* vh2b2;
-	CVerusHashV2::init();
-    vh2b2 = new CVerusHashV2(SOLUTION_VERUSHHASH_V2_2);
-    vh2b2->Reset();
-    vh2b2->Write((const unsigned char *)input, input_len);
-    vh2b2->Finalize2b((unsigned char *)output);
-
-}
-																					   

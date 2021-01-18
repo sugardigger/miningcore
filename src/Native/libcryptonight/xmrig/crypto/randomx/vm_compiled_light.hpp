@@ -33,12 +33,20 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace randomx {
 
-	template<int softAes>
+	template<bool softAes>
 	class CompiledLightVm : public CompiledVm<softAes>
 	{
 	public:
-		void* operator new(size_t, void* ptr) { return ptr; }
-		void operator delete(void*) {}
+		void* operator new(size_t size) {
+			void* ptr = AlignedAllocator<CacheLineSize>::allocMemory(size);
+			if (ptr == nullptr)
+				throw std::bad_alloc();
+			return ptr;
+		}
+
+		void operator delete(void* ptr) {
+			AlignedAllocator<CacheLineSize>::freeMemory(ptr, sizeof(CompiledLightVm));
+		}
 
 		void setCache(randomx_cache* cache) override;
 		void setDataset(randomx_dataset* dataset) override { }
@@ -52,6 +60,6 @@ namespace randomx {
 		using CompiledVm<softAes>::datasetOffset;
 	};
 
-	using CompiledLightVmDefault = CompiledLightVm<1>;
-	using CompiledLightVmHardAes = CompiledLightVm<0>;
+	using CompiledLightVmDefault = CompiledLightVm<true>;
+	using CompiledLightVmHardAes = CompiledLightVm<false>;
 }
