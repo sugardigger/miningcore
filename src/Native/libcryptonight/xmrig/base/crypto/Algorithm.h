@@ -29,7 +29,6 @@
 /*
  *	Miningcore addon
  */
-#define XMRIG_ALGO_CN_GPU   1
 #define XMRIG_ALGO_CN_LITE  1
 #define XMRIG_ALGO_CN_HEAVY 1
 #define XMRIG_ALGO_CN_PICO  1
