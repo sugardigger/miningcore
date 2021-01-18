@@ -55,7 +55,7 @@ namespace Miningcore.Blockchain.Bitcoin
 
         protected async Task<DaemonResponse<BlockTemplate>> GetBlockTemplateAsync()
         {
-            logger.LogInvoke();
+            //logger.LogInvoke();
 
             var result = await daemon.ExecuteCmdAnyAsync<BlockTemplate>(logger,
                 BitcoinCommands.GetBlockTemplate, extraPoolConfig?.GBTArgs ?? (object) getBlockTemplateParams);
@@ -65,7 +65,7 @@ namespace Miningcore.Blockchain.Bitcoin
 
         protected DaemonResponse<BlockTemplate> GetBlockTemplateFromJson(string json)
         {
-            logger.LogInvoke();
+            //logger.LogInvoke();
 
             var result = JsonConvert.DeserializeObject<JsonRpcResponse>(json);
 

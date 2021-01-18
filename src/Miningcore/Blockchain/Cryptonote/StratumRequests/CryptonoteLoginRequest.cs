@@ -32,5 +32,8 @@ namespace Miningcore.Blockchain.Cryptonote.StratumRequests
 
         [JsonProperty("agent")]
         public string UserAgent { get; set; }
+
+        //[JsonProperty("algo")]
+        //public string Algo { get; set; }
     }
 }

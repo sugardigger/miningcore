@@ -271,6 +271,9 @@ namespace Miningcore.Stratum
                 receivePipe.Writer.Advance(cb);
 
                 var result = await receivePipe.Writer.FlushAsync(cts.Token);
+
+                logger.Debug(() => $"[{ConnectionId}] [NET] Data recieved result: {result}");
+
                 if(result.IsCompleted)
                     break;
             }

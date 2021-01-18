@@ -88,7 +88,7 @@ namespace Miningcore.Blockchain.Ethereum
 
         protected async Task<bool> UpdateJobAsync()
         {
-            logger.LogInvoke();
+            //logger.LogInvoke();
 
             try
             {
@@ -105,7 +105,7 @@ namespace Miningcore.Blockchain.Ethereum
 
         protected bool UpdateJob(EthereumBlockTemplate blockTemplate)
         {
-            logger.LogInvoke();
+            //logger.LogInvoke();
 
             try
             {
@@ -176,7 +176,7 @@ namespace Miningcore.Blockchain.Ethereum
 
         private async Task<EthereumBlockTemplate> GetBlockTemplateParityAsync()
         {
-            logger.LogInvoke();
+            //logger.LogInvoke();
 
             var response = await daemon.ExecuteCmdAnyAsync<JToken>(logger, EthCommands.GetWork);
 
@@ -201,7 +201,7 @@ namespace Miningcore.Blockchain.Ethereum
 
         private async Task<EthereumBlockTemplate> GetBlockTemplateGethAsync()
         {
-            logger.LogInvoke();
+            //logger.LogInvoke();
 
             var commands = new[]
             {

@@ -186,6 +186,7 @@ namespace Miningcore.Blockchain.Cryptonote
                 switch(coin.Hash)
                 {
                     case CryptonightHashType.Normal:
+                        Console.WriteLine("Coin Hash Normal ");
                         variant = CryptonightVariant.VARIANT_0;
                         if(blobConverted[0] >= 12) { variant = CryptonightVariant.VARIANT_0; }
                         if(blobConverted[0] >= 12) { variant = CryptonightVariant.VARIANT_0; }
@@ -195,12 +196,20 @@ namespace Miningcore.Blockchain.Cryptonote
                         break;
 
                     case CryptonightHashType.Lite:
+                        Console.WriteLine("Coin Hash Lite ");
                         variant = CryptonightVariant.VARIANT_1;
                         break;
 
                     case CryptonightHashType.Heavy:
+                        Console.WriteLine("Coin Hash Heavy ");
                         variant = CryptonightVariant.VARIANT_0;
                         break;
+
+                    case CryptonightHashType.RandomX:
+                        Console.WriteLine("Coin Hash RandomX ");
+                        variant = CryptonightVariant.VARIANT_0;
+                        break;
+
                     default:
                         Console.WriteLine("Default VARIANT_0 used");
                         variant = CryptonightVariant.VARIANT_0;
