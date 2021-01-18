@@ -135,26 +135,24 @@ static AlgoName const algorithm_names[] = {
 
 } /* namespace xmrig */
 
-
-xmrig::Algorithm::Algorithm(const rapidjson::Value &value) :
-    m_id(parse(value.GetString()))
-{
-}
-
-
-rapidjson::Value xmrig::Algorithm::toJSON() const
-{
-    using namespace rapidjson;
-
-    return isValid() ? Value(StringRef(shortName())) : Value(kNullType);
-}
-
-
-rapidjson::Value xmrig::Algorithm::toJSON(rapidjson::Document &) const
-{
-    return toJSON();
-}
-
+/* Miningcore exclude
+ *xmrig::Algorithm::Algorithm(const rapidjson::Value &value) :
+ *   m_id(parse(value.GetString()))
+ *{
+ *}
+ *
+ *rapidjson::Value xmrig::Algorithm::toJSON() const
+ *{
+ *   using namespace rapidjson;
+ *
+ *   return isValid() ? Value(StringRef(shortName())) : Value(kNullType);
+ *}
+ *
+ *rapidjson::Value xmrig::Algorithm::toJSON(rapidjson::Document &) const
+ *{
+ *   return toJSON();
+ *}
+ */
 
 size_t xmrig::Algorithm::l2() const
 {

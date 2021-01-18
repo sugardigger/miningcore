@@ -43,6 +43,8 @@ OBJECTS =	xmrig/crypto/cn/asm/cn_main_loop.o \
 			xmrig/crypto/randomx/vm_compiled_light.o \
 			xmrig/crypto/randomx/blake2/blake2b.o \
 			xmrig/crypto/rx/RxCache.o \
+			xmrig/crypto/kawpow/KPHash.o \
+			xmrig/crypto/kawpow/KPCache.o \
 			xmrig/crypto/randomx/jit_compiler_x86_static.o \
 			xmrig/crypto/randomx/jit_compiler_x86.o \
 			 \

@@ -202,7 +202,9 @@
     <ClCompile Include="xmrig/crypto/randomx/vm_compiled_light.cpp" />
     <ClCompile Include="xmrig/crypto/randomx/blake2/blake2b.c" />
 	<ClCompile Include="xmrig/crypto/rx/RxCache.cpp" />
-    <ClCompile Include="xmrig/3rdparty/argon2/lib/argon2.c" />
+	<ClCompile Include="xmrig/crypto/kawpow/KPHash.cpp" />
+	<ClCompile Include="xmrig/crypto/kawpow/KPCache.cpp" />
+	<ClCompile Include="xmrig/3rdparty/argon2/lib/argon2.c" />
     <ClCompile Include="xmrig/3rdparty/argon2/lib/core.c" />
     <ClCompile Include="xmrig/3rdparty/argon2/lib/encoding.c" />
     <ClCompile Include="xmrig/3rdparty/argon2/lib/genkat.c" />
