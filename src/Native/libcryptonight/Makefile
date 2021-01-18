@@ -15,8 +15,8 @@ OBJECTS =	xmrig/crypto/cn/asm/cn_main_loop.o \
 			xmrig/crypto/cn/c_groestl.o \
 			xmrig/crypto/cn/c_jh.o \
 			xmrig/crypto/cn/c_skein.o \
-			xmrig/crypto/common/keccak.o \
-			xmrig-override/crypto/common/Algorithm.o \
+			xmrig/base/crypto/keccak.o \
+			xmrig/base/crypto/Algorithm.o \
 			xmrig/crypto/cn/CnCtx.o \
 			xmrig/crypto/cn/CnHash.o \
 			xmrig/crypto/common/MemoryPool.o \
@@ -42,6 +42,7 @@ OBJECTS =	xmrig/crypto/cn/asm/cn_main_loop.o \
 			xmrig/crypto/randomx/virtual_machine.o \
 			xmrig/crypto/randomx/vm_compiled_light.o \
 			xmrig/crypto/randomx/blake2/blake2b.o \
+			xmrig/crypto/rx/RxCache.o \
 			xmrig/crypto/randomx/jit_compiler_x86_static.o \
 			xmrig/crypto/randomx/jit_compiler_x86.o \
 			 \
