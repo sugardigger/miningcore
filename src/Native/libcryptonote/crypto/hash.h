@@ -32,7 +32,7 @@
 
 #include <stddef.h>
 #include <iostream>
-// MC #include <boost/utility/value_init.hpp>
+#include <boost/utility/value_init.hpp>
 
 #include "common/pod-class.h"
 #include "generic-ops.h"

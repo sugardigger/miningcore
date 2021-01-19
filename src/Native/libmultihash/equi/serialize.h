@@ -26,8 +26,8 @@
 #include <utility>
 #include <vector>
 
-// MC #include <boost/array.hpp>
-// MC #include <boost/optional.hpp>
+#include <boost/array.hpp>
+#include <boost/optional.hpp>
 
 class CScript;
 

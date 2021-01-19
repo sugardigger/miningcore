@@ -18,7 +18,7 @@
 #include <set>
 #include <vector>
 
-// MC #include <boost/static_assert.hpp>
+#include <boost/static_assert.hpp>
 
 #ifdef WIN32
 #undef max

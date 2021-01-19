@@ -30,8 +30,8 @@
 
 #pragma once
 
-// MC #include <boost/variant.hpp>
-// MC #include <boost/functional/hash/hash.hpp>
+#include <boost/variant.hpp>
+#include <boost/functional/hash/hash.hpp>
 #include <vector>
 #include <cstring>  // memcmp
 #include <sstream>
