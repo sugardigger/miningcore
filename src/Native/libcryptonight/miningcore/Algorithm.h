@@ -1,37 +1,19 @@
-/* XMRig
- * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
- * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
- * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
- * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
- * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
- * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
- *
- *   This program is free software: you can redistribute it and/or modify
- *   it under the terms of the GNU General Public License as published by
- *   the Free Software Foundation, either version 3 of the License, or
- *   (at your option) any later version.
- *
- *   This program is distributed in the hope that it will be useful,
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- *   GNU General Public License for more details.
- *
- *   You should have received a copy of the GNU General Public License
- *   along with this program. If not, see <http://www.gnu.org/licenses/>.
- */
-
 #ifndef XMRIG_ALGORITHM_H
 #define XMRIG_ALGORITHM_H
 
+/*
+ *	Miningcore addon
+ */
+#define XMRIG_ALGO_CN_LITE  1
+#define XMRIG_ALGO_CN_HEAVY 1
+#define XMRIG_ALGO_CN_PICO  1
+#define XMRIG_ALGO_RANDOMX  1
+#define XMRIG_ALGO_ARGON2   1
 
-#include <vector>
-
-
-#include "3rdparty/rapidjson/fwd.h"
-
+/* Miningcore Excludes
+ *#include <vector>
+ *#include "3rdparty/rapidjson/fwd.h"
+ */
 
 namespace xmrig {
 
@@ -90,15 +72,23 @@ public:
     };
 
     inline Algorithm() = default;
-    inline Algorithm(const char *algo) : m_id(parse(algo)) {}
+	
+/*	Miningcore exclude
+ *  inline Algorithm(const char *algo) : m_id(parse(algo)) {}
+ */
     inline Algorithm(Id id) : m_id(id)                     {}
-    Algorithm(const rapidjson::Value &value);
-
+    
+/*	Miningcore exclude
+ *	Algorithm(const rapidjson::Value &value);
+ */
     inline bool isCN() const                          { auto f = family(); return f == CN || f == CN_LITE || f == CN_HEAVY || f == CN_PICO; }
     inline bool isEqual(const Algorithm &other) const { return m_id == other.m_id; }
     inline bool isValid() const                       { return m_id != INVALID && family() != UNKNOWN; }
-    inline const char *name() const                   { return name(false); }
-    inline const char *shortName() const              { return name(true); }
+
+/*	Miningcore exclude
+ *    inline const char *name() const                   { return name(false); }
+ *    inline const char *shortName() const              { return name(true); }
+ */
     inline Family family() const                      { return family(m_id); }
     inline Id id() const                              { return m_id; }
 
@@ -108,24 +98,29 @@ public:
     inline bool operator==(const Algorithm &other) const  { return isEqual(other); }
     inline operator Algorithm::Id() const                 { return m_id; }
 
-    rapidjson::Value toJSON() const;
-    rapidjson::Value toJSON(rapidjson::Document &doc) const;
-    size_t l2() const;
-    size_t l3() const;
-    uint32_t maxIntensity() const;
-
+/* Miningcore exclude
+ *   rapidjson::Value toJSON() const;
+ *   rapidjson::Value toJSON(rapidjson::Document &doc) const;
+ *   size_t l2() const;
+ *   size_t l3() const;
+ *   uint32_t maxIntensity() const;
+ */
     static Family family(Id id);
-    static Id parse(const char *name);
-
+    
+/* Miningcore exclude
+ *   static Id parse(const char *name);
+ */
+ 
 private:
-    const char *name(bool shortName) const;
-
+/*	Miningcore exclude
+ *  const char *name(bool shortName) const;
+ */
     Id m_id = INVALID;
 };
 
-
-using Algorithms = std::vector<Algorithm>;
-
+/* Miningcore exclude
+ * using Algorithms = std::vector<Algorithm>;
+ */
 
 } /* namespace xmrig */
 

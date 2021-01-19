@@ -16,7 +16,7 @@ OBJECTS =	xmrig/crypto/cn/asm/cn_main_loop.o \
 			xmrig/crypto/cn/c_jh.o \
 			xmrig/crypto/cn/c_skein.o \
 			xmrig/base/crypto/keccak.o \
-			xmrig/base/crypto/Algorithm.o \
+			miningcore/Algorithm.o \
 			xmrig/crypto/cn/CnCtx.o \
 			xmrig/crypto/cn/CnHash.o \
 			xmrig/crypto/common/MemoryPool.o \
