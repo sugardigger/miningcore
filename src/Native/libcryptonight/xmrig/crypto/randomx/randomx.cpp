@@ -294,17 +294,18 @@ typedef void(randomx::JitCompilerX86::* InstructionGeneratorX86_2)(const randomx
 	INST_HANDLE(IMUL_R, ISUB_M);
 	INST_HANDLE(IMUL_M, IMUL_R);
 
-#if defined(_M_X64) || defined(__x86_64__)
-	if (xmrig::Cpu::info()->hasBMI2()) {
-		INST_HANDLE2(IMULH_R, IMULH_R_BMI2, IMUL_M);
-		INST_HANDLE2(IMULH_M, IMULH_M_BMI2, IMULH_R);
-	}
-	else
-#endif
-	{
+// Miningcore exclude
+//#if defined(_M_X64) || defined(__x86_64__)
+//	if (xmrig::Cpu::info()->hasBMI2()) {
+//		INST_HANDLE2(IMULH_R, IMULH_R_BMI2, IMUL_M);
+//		INST_HANDLE2(IMULH_M, IMULH_M_BMI2, IMULH_R);
+//	}
+//	else
+//#endif
+	//{
 		INST_HANDLE(IMULH_R, IMUL_M);
 		INST_HANDLE(IMULH_M, IMULH_R);
-	}
+	//}
 
 	INST_HANDLE(ISMULH_R, IMULH_M);
 	INST_HANDLE(ISMULH_M, ISMULH_R);
@@ -336,15 +337,16 @@ typedef void(randomx::JitCompilerX86::* InstructionGeneratorX86_2)(const randomx
 	INST_HANDLE(CBRANCH, FSQRT_R);
 #endif
 
-#if defined(_M_X64) || defined(__x86_64__)
-	if (xmrig::Cpu::info()->hasBMI2()) {
-		INST_HANDLE2(CFROUND, CFROUND_BMI2, CBRANCH);
-	}
-	else
-#endif
-	{
+// Miningcore exclude
+//#if defined(_M_X64) || defined(__x86_64__)
+//	if (xmrig::Cpu::info()->hasBMI2()) {
+//		INST_HANDLE2(CFROUND, CFROUND_BMI2, CBRANCH);
+//	}
+//	else
+//#endif
+//	{
 		INST_HANDLE(CFROUND, CBRANCH);
-	}
+//	}
 
 	INST_HANDLE(ISTORE, CFROUND);
 	INST_HANDLE(NOP, ISTORE);
