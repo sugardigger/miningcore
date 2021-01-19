@@ -40,10 +40,10 @@
 #include <cstdlib>
 #include <string>
 #include <type_traits>
-#include <boost/uuid/uuid.hpp>
-#include <boost/uuid/uuid_io.hpp>
-#include <boost/lexical_cast.hpp>
-#include <boost/algorithm/string/predicate.hpp>
+// MC #include <boost/uuid/uuid.hpp>
+// MC #include <boost/uuid/uuid_io.hpp>
+// MC #include <boost/lexical_cast.hpp>
+// MC #include <boost/algorithm/string/predicate.hpp>
 #include "hex.h"
 #include "memwipe.h"
 #include "span.h"

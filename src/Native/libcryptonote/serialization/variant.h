@@ -36,13 +36,13 @@
  */
 #pragma once
 
-#include <boost/variant/variant.hpp>
-#include <boost/variant/apply_visitor.hpp>
-#include <boost/variant/static_visitor.hpp>
-#include <boost/mpl/empty.hpp>
-#include <boost/mpl/if.hpp>
-#include <boost/mpl/front.hpp>
-#include <boost/mpl/pop_front.hpp>
+// MC #include <boost/variant/variant.hpp>
+// MC #include <boost/variant/apply_visitor.hpp>
+// MC #include <boost/variant/static_visitor.hpp>
+// MC #include <boost/mpl/empty.hpp>
+// MC #include <boost/mpl/if.hpp>
+// MC #include <boost/mpl/front.hpp>
+// MC #include <boost/mpl/pop_front.hpp>
 #include "serialization.h"
 
 /*! \struct variant_serialization_triats
