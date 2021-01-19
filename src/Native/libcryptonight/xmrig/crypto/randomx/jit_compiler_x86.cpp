@@ -217,58 +217,28 @@ namespace randomx {
 	constexpr size_t codeOffsetIncrement = 59 * 64;
 
 	JitCompilerX86::JitCompilerX86(bool hugePagesEnable, bool optimizedInitDatasetEnable) {
-		BranchesWithin32B = xmrig::Cpu::info()->jccErratum();
+		
+		// Miningcore exclude
+		BranchesWithin32B = false ;
+		//xmrig::Cpu::info()->jccErratum();
 
-		hasAVX = xmrig::Cpu::info()->hasAVX();
-		hasAVX2 = xmrig::Cpu::info()->hasAVX2();
+		hasAVX = false;
+		//xmrig::Cpu::info()->hasAVX();
+		hasAVX2 = false;
+		//xmrig::Cpu::info()->hasAVX2();
 
 		// Disable by default
 		initDatasetAVX2 = false;
 
-		if (optimizedInitDatasetEnable) {
-			// Dataset init using AVX2:
-			// -1 = Auto detect
-			//  0 = Always disabled
-			// +1 = Always enabled
-			if (optimizedDatasetInit > 0) {
-				initDatasetAVX2 = true;
-			}
-			else if (optimizedDatasetInit < 0) {
-				xmrig::ICpuInfo::Vendor vendor = xmrig::Cpu::info()->vendor();
-				xmrig::ICpuInfo::Arch arch = xmrig::Cpu::info()->arch();
 
-				if (vendor == xmrig::ICpuInfo::VENDOR_INTEL) {
-					// AVX2 init is faster on Intel CPUs without HT
-					initDatasetAVX2 = (xmrig::Cpu::info()->cores() == xmrig::Cpu::info()->threads());
-				}
-				else if (vendor == xmrig::ICpuInfo::VENDOR_AMD) {
-					switch (arch) {
-					case xmrig::ICpuInfo::ARCH_ZEN:
-					case xmrig::ICpuInfo::ARCH_ZEN_PLUS:
-					default:
-						// AVX2 init is slower on Zen/Zen+
-						// Also disable it for other unknown architectures
-						initDatasetAVX2 = false;
-						break;
-					case xmrig::ICpuInfo::ARCH_ZEN2:
-						// AVX2 init is faster on Zen2 without SMT (mobile CPUs)
-						initDatasetAVX2 = (xmrig::Cpu::info()->cores() == xmrig::Cpu::info()->threads());
-						break;
-					case xmrig::ICpuInfo::ARCH_ZEN3:
-						// AVX2 init is faster on Zen3
-						initDatasetAVX2 = true;
-						break;
-					}
-				}
-			}
-		}
 
 		// Sorry, low-end Intel CPUs
 		if (!hasAVX2) {
 			initDatasetAVX2 = false;
 		}
 
-		hasXOP = xmrig::Cpu::info()->hasXOP();
+		hasXOP = false; 
+		//xmrig::Cpu::info()->hasXOP();
 
 		allocatedSize = initDatasetAVX2 ? (CodeSize * 4) : (CodeSize * 2);
 		allocatedCode = static_cast<uint8_t*>(allocExecutableMemory(allocatedSize,
