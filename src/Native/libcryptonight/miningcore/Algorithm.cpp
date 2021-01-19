@@ -1,5 +1,5 @@
 
-#include "miningcore/Algorithm.h"
+#include "Algorithm.h"
 
 
 xmrig::Algorithm::Family xmrig::Algorithm::family(Id id)
