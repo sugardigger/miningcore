@@ -141,7 +141,15 @@ static xmrig::cn_hash_fun get_argon2_fn(const int algo) {
   switch (algo) {
     case 0:  return FN(AR2_CHUKWA);
     case 1:  return FN(AR2_WRKZ);
+    case 2:  return FN(AR2_CHUKWA_V2);
     default: return FN(AR2_CHUKWA);
+  }
+}
+
+static xmrig::cn_hash_fun get_astrobwt_fn(const int algo) {
+  switch (algo) {
+    case 0:  return FN(ASTROBWT_DERO);
+    default: return FN(ASTROBWT_DERO);
   }
 }
 
@@ -324,6 +332,8 @@ extern "C" MODULE_API void randomx_export(RandomXVmWrapper* wrapper, const char*
 {
     auto vm = wrapper->vm;
 	
+	char output[32];
+	xmrig::Algorithm xalgo;
     switch (variant) {
         case 0:  xalgo = xmrig::Algorithm::RX_0; break;
         //case 1:  xalgo = xmrig::Algorithm::RX_DEFYX; break;
