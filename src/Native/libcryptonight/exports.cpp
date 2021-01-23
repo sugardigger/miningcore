@@ -5,9 +5,9 @@
 #include <stdexcept>
 
 #include <string>
-#include <algorithm>
 
-#include "crypto/cn/CryptoNight.h"
+//#include <algorithm>
+//#include "crypto/cn/CryptoNight.h"
 
 #include "crypto/common/VirtualMemory.h"
 #include "crypto/cn/CnCtx.h" 
@@ -74,6 +74,56 @@ struct InitCtx {
     }
 } s;
 
+
+// void init_rx(const uint8_t* seed_hash_data, xmrig::Algorithm::Id algo)
+extern "C" MODULE_API RandomXCacheWrapper *randomx_create_cache_export(int variant, const char* seedHash, size_t seedHashSize)
+{
+    // Copy seed
+    auto seedHashCopy = malloc(seedHashSize);
+    memcpy(seedHashCopy, seedHash, seedHashSize);
+
+    // Alloc cache
+	uint8_t* const pmem = static_cast<uint8_t*>(_mm_malloc(RANDOMX_CACHE_MAX_SIZE, 4096));
+    auto rx_cache[algo] = randomx_create_cache(static_cast<randomx_flags>(RANDOMX_FLAG_JIT | RANDOMX_FLAG_LARGE_PAGES), pmem);
+    if (!rx_cache[algo])
+        rx_cache[algo] = randomx_create_cache(RANDOMX_FLAG_JIT, pmem);
+		
+    switch (variant) {
+        case 0:
+            randomx_apply_config(RandomX_MoneroConfig);
+            break;
+        case 1:
+            randomx_apply_config(RandomX_ScalaConfig);
+            break;
+        case 2:
+            randomx_apply_config(RandomX_ArqmaConfig);
+            break;
+		case 3:
+            randomx_apply_config(RandomX_Scala2Config);
+            break;
+        case 17:
+            randomx_apply_config(RandomX_WowneroConfig);
+            break;
+		case 19:
+            randomx_apply_config(RandomX_KevaConfig);
+            break;
+        default:
+            throw std::domain_error("Unknown RandomX algo");
+    }
+
+    // Init cache
+    randomx_init_cache(cache, seedHashCopy, seedHashSize);
+
+    // Wrap it
+    auto wrapper = new RandomXCacheWrapper(cache, seedHashCopy);
+    return wrapper;
+}
+
+
+
+
+
+
 static xmrig::cn_hash_fun get_cn_fn(const int algo) {
   switch (algo) {
     case 0:  return FN(CN_0);
@@ -92,27 +142,6 @@ static xmrig::cn_hash_fun get_cn_fn(const int algo) {
     default: return FN(CN_R);
   }
 }
-
-class CryptonightContextWrapper
-{
-public:
-    CryptonightContextWrapper(xmrig::VirtualMemory *mem, cryptonight_ctx *ctx)
-    {
-        this->ctx = ctx;
-        this->mem = mem;
-    }
-
-    ~CryptonightContextWrapper()
-    {
-        if(ctx)
-            xmrig::CnCtx::release(&ctx, 1);
-
-        delete mem;
-    }
-
-    xmrig::VirtualMemory *mem;
-    cryptonight_ctx *ctx;
-};
 
 static xmrig::cn_hash_fun get_cn_lite_fn(const int algo) {
   switch (algo) {
@@ -152,6 +181,28 @@ static xmrig::cn_hash_fun get_astrobwt_fn(const int algo) {
     default: return FN(ASTROBWT_DERO);
   }
 }
+
+
+class CryptonightContextWrapper
+{
+public:
+    CryptonightContextWrapper(xmrig::VirtualMemory *mem, cryptonight_ctx *ctx)
+    {
+        this->ctx = ctx;
+        this->mem = mem;
+    }
+
+    ~CryptonightContextWrapper()
+    {
+        if(ctx)
+            xmrig::CnCtx::release(&ctx, 1);
+
+        delete mem;
+    }
+
+    xmrig::VirtualMemory *mem;
+    cryptonight_ctx *ctx;
+};
 
 extern "C" MODULE_API CryptonightContextWrapper *cryptonight_alloc_context_export() {
     cryptonight_ctx *ctx = NULL;
@@ -253,49 +304,6 @@ public:
     randomx_cache *cache;
 };
 
-extern "C" MODULE_API RandomXCacheWrapper *randomx_create_cache_export(int variant, const char* seedHash, size_t seedHashSize)
-{
-    // Copy seed
-    auto seedHashCopy = malloc(seedHashSize);
-    memcpy(seedHashCopy, seedHash, seedHashSize);
-
-    // Alloc cache
-	uint8_t* const pmem = static_cast<uint8_t*>(_mm_malloc(RANDOMX_CACHE_MAX_SIZE, 4096));
-    auto cache = randomx_create_cache(static_cast<randomx_flags>(RANDOMX_FLAG_JIT | RANDOMX_FLAG_LARGE_PAGES), pmem);
-
-    if (!cache)
-        cache = randomx_create_cache(RANDOMX_FLAG_JIT, pmem);
-		
-    switch (variant) {
-        case 0:
-            randomx_apply_config(RandomX_MoneroConfig);
-            break;
-        case 1:
-            randomx_apply_config(RandomX_ScalaConfig);
-            break;
-        case 2:
-            randomx_apply_config(RandomX_ArqmaConfig);
-            break;
-		case 3:
-            randomx_apply_config(RandomX_Scala2Config);
-            break;
-        case 17:
-            randomx_apply_config(RandomX_WowneroConfig);
-            break;
-		case 19:
-            randomx_apply_config(RandomX_KevaConfig);
-            break;
-        default:
-            throw std::domain_error("Unknown RandomX algo");
-    }
-
-    // Init cache
-    randomx_init_cache(cache, seedHashCopy, seedHashSize);
-
-    // Wrap it
-    auto wrapper = new RandomXCacheWrapper(cache, seedHashCopy);
-    return wrapper;
-}
 
 extern "C" MODULE_API void randomx_free_cache_export(RandomXCacheWrapper *wrapper)
 {
@@ -332,8 +340,7 @@ extern "C" MODULE_API void randomx_export(RandomXVmWrapper* wrapper, const char*
 {
     auto vm = wrapper->vm;
 	
-	char output[32];
-	xmrig::Algorithm xalgo;
+	int xalgo;
     switch (variant) {
         case 0:  xalgo = xmrig::Algorithm::RX_0; break;
         //case 1:  xalgo = xmrig::Algorithm::RX_DEFYX; break;
