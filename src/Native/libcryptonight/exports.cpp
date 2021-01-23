@@ -258,8 +258,6 @@ extern "C" MODULE_API RandomXCacheWrapper *randomx_create_cache_export(int varia
     if (!cache)
         cache = randomx_create_cache(RANDOMX_FLAG_JIT, pmem);
 		
-	update_cache = true;
-
     switch (variant) {
         case 0:
             randomx_apply_config(RandomX_MoneroConfig);
@@ -275,9 +273,6 @@ extern "C" MODULE_API RandomXCacheWrapper *randomx_create_cache_export(int varia
             break;
         case 17:
             randomx_apply_config(RandomX_WowneroConfig);
-            break;
-        case 18:
-            randomx_apply_config(RandomX_LokiConfig);
             break;
 		case 19:
             randomx_apply_config(RandomX_KevaConfig);
@@ -304,10 +299,9 @@ extern "C" MODULE_API RandomXVmWrapper *randomx_create_vm_export(randomx_cache *
     int flags = RANDOMX_FLAG_LARGE_PAGES | RANDOMX_FLAG_JIT;
 
     auto mem = new xmrig::VirtualMemory(max_mem_size, false, false, 0, 4096);
-    auto vm = randomx_create_vm(static_cast<randomx_flags>(flags), cache, nullptr, mem->scratchpad());
-
+    auto vm = randomx_create_vm(static_cast<randomx_flags>(flags), cache, nullptr, mem->scratchpad(), 0);
     if (!vm)
-        vm = randomx_create_vm(static_cast<randomx_flags>(flags - RANDOMX_FLAG_LARGE_PAGES), cache, nullptr, mem->scratchpad());
+        vm = randomx_create_vm(static_cast<randomx_flags>(flags - RANDOMX_FLAG_LARGE_PAGES), cache, nullptr, mem->scratchpad(), 0);
 
     if (!vm)
         return nullptr;
@@ -329,10 +323,18 @@ extern "C" MODULE_API void randomx_set_vm_cache_export(RandomXVmWrapper *wrapper
 extern "C" MODULE_API void randomx_export(RandomXVmWrapper* wrapper, const char* input, unsigned char *output, size_t inputSize, uint32_t variant, uint64_t height)
 {
     auto vm = wrapper->vm;
-
+	
     switch (variant) {
-      case 1:  defyx_calculate_hash  (vm, reinterpret_cast<const uint8_t*>(input), inputSize, reinterpret_cast<uint8_t*>(output));
-               break;
-      default: randomx_calculate_hash(vm, reinterpret_cast<const uint8_t*>(input), inputSize, reinterpret_cast<uint8_t*>(output));
+        case 0:  xalgo = xmrig::Algorithm::RX_0; break;
+        //case 1:  xalgo = xmrig::Algorithm::RX_DEFYX; break;
+        case 2:  xalgo = xmrig::Algorithm::RX_ARQ; break;
+        case 3:  xalgo = xmrig::Algorithm::RX_XLA; break;
+        case 17: xalgo = xmrig::Algorithm::RX_WOW; break;
+        //case 18: xalgo = xmrig::Algorithm::RX_LOKI; break;
+        case 19: xalgo = xmrig::Algorithm::RX_KEVA; break;
+        default: xalgo = xmrig::Algorithm::RX_0;
     }
+	
+    default: randomx_calculate_hash(vm, reinterpret_cast<const uint8_t*>(input), inputSize, reinterpret_cast<uint8_t*>(output), xalgo);
+    
 }
