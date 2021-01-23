@@ -101,7 +101,7 @@ public:
 // void init_rx(const uint8_t* seed_hash_data, xmrig::Algorithm::Id algo)
 extern "C" MODULE_API RandomXCacheWrapper *randomx_create_cache_export(int variant, const char* seedHash, size_t seedHashSize)
 {
-    
+    bool update_cache = false;
     // Alloc rx_cache[variant]
 	uint8_t* const pmem = static_cast<uint8_t*>(_mm_malloc(RANDOMX_CACHE_MAX_SIZE, 4096));
     rx_cache[variant] = randomx_create_cache(static_cast<randomx_flags>(RANDOMX_FLAG_JIT | RANDOMX_FLAG_LARGE_PAGES), pmem);
