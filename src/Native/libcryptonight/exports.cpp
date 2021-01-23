@@ -75,6 +75,28 @@ struct InitCtx {
 } s;
 
 
+class RandomXCacheWrapper
+{
+public:
+    RandomXCacheWrapper(randomx_cache *rx_cache[algo], void *seedHash)
+    {
+        this->rx_cache[algo] = rx_cache[algo];
+        this->seedHash = seedHash;
+    }
+
+    ~RandomXCacheWrapper()
+    {
+        if(rx_cache[algo])
+            randomx_release_cache(rx_cache[algo]);
+
+        if(seedHash)
+            free(seedHash);
+    }
+
+    void *seedHash;
+    randomx_cache *rx_cache[algo] ;
+};
+
 // void init_rx(const uint8_t* seed_hash_data, xmrig::Algorithm::Id algo)
 extern "C" MODULE_API RandomXCacheWrapper *randomx_create_cache_export(int variant, const char* seedHash, size_t seedHashSize)
 {
@@ -282,27 +304,8 @@ public:
     randomx_vm *vm;
 };
 
-class RandomXCacheWrapper
-{
-public:
-    RandomXCacheWrapper(randomx_cache *cache, void *seedHash)
-    {
-        this->cache = cache;
-        this->seedHash = seedHash;
-    }
 
-    ~RandomXCacheWrapper()
-    {
-        if(cache)
-            randomx_release_cache(cache);
 
-        if(seedHash)
-            free(seedHash);
-    }
-
-    void *seedHash;
-    randomx_cache *cache;
-};
 
 
 extern "C" MODULE_API void randomx_free_cache_export(RandomXCacheWrapper *wrapper)
@@ -310,14 +313,14 @@ extern "C" MODULE_API void randomx_free_cache_export(RandomXCacheWrapper *wrappe
     delete wrapper;
 }
 
-extern "C" MODULE_API RandomXVmWrapper *randomx_create_vm_export(randomx_cache *cache)
+extern "C" MODULE_API RandomXVmWrapper *randomx_create_vm_export(randomx_cache *rx_cache[algo] )
 {
     int flags = RANDOMX_FLAG_LARGE_PAGES | RANDOMX_FLAG_JIT;
 
     auto mem = new xmrig::VirtualMemory(max_mem_size, false, false, 0, 4096);
-    auto vm = randomx_create_vm(static_cast<randomx_flags>(flags), cache, nullptr, mem->scratchpad(), 0);
+    auto vm = randomx_create_vm(static_cast<randomx_flags>(flags), rx_cache[algo], nullptr, mem->scratchpad(), 0);
     if (!vm)
-        vm = randomx_create_vm(static_cast<randomx_flags>(flags - RANDOMX_FLAG_LARGE_PAGES), cache, nullptr, mem->scratchpad(), 0);
+        vm = randomx_create_vm(static_cast<randomx_flags>(flags - RANDOMX_FLAG_LARGE_PAGES), rx_cache[algo], nullptr, mem->scratchpad(), 0);
 
     if (!vm)
         return nullptr;
@@ -333,14 +336,14 @@ extern "C" MODULE_API void randomx_free_vm_export(RandomXVmWrapper *wrapper)
 
 extern "C" MODULE_API void randomx_set_vm_cache_export(RandomXVmWrapper *wrapper, RandomXCacheWrapper *cacheWrapper)
 {
-    randomx_vm_set_cache(wrapper->vm, cacheWrapper->cache);
+    randomx_vm_set_cache(wrapper->vm, cacheWrapper->rx_cache[algo]);
 }
 
 extern "C" MODULE_API void randomx_export(RandomXVmWrapper* wrapper, const char* input, unsigned char *output, size_t inputSize, uint32_t variant, uint64_t height)
 {
     auto vm = wrapper->vm;
 	
-	int xalgo;
+	auto xalgo;
     switch (variant) {
         case 0:  xalgo = xmrig::Algorithm::RX_0; break;
         //case 1:  xalgo = xmrig::Algorithm::RX_DEFYX; break;
