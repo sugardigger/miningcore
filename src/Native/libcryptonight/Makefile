@@ -16,7 +16,7 @@ OBJECTS =	xmrig/crypto/cn/asm/cn_main_loop.o \
 			xmrig-override/backend/cpu/platform/BasicCpuInfo.o \
 			xmrig-override/backend/cpu/platform/BasicCpuInfo_arm.o \
 			 \
-			exports.o
+			exports.o \
 			xmrig-override/backend/cpu/Cpu.o \
 			 \
 			c29b.o \
