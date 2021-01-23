@@ -244,9 +244,7 @@
     <ClCompile Include="xmrig/crypto/cn/r/CryptonightR_gen.cpp" />
     <ClCompile Include="xmrig/crypto/cn/gpu/cn_gpu_avx.cpp" />
     <ClCompile Include="xmrig/crypto/cn/gpu/cn_gpu_ssse3.cpp" />
-	<ClCompile Include="xmrig/crypto/cn/gpu/cn_gpu_arm.cpp" />
 	<ClCompile Include="xmrig-override/backend/cpu/platform/BasicCpuInfo.cpp" />
-	<ClCompile Include="xmrig-override/backend/cpu/platform/BasicCpuInfo_arm.cpp" />
     <ClCompile Include="xmrig\crypto\common\VirtualMemory_win.cpp" />
     <None Include="Makefile" />
   </ItemGroup>
