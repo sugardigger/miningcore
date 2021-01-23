@@ -84,6 +84,7 @@ OBJECTS =	xmrig/crypto/cn/asm/cn_main_loop.o \
 			xmrig/3rdparty/libethash/keccakf800.o \
 			xmrig/3rdparty/libethash/ethash_internal.o \
 			 \
+			multihashing.0 \
 			exports.o
 
 all: $(TARGET)
