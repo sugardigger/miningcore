@@ -80,7 +80,7 @@ OBJECTS =	xmrig/crypto/cn/asm/cn_main_loop.o \
             xmrig/crypto/randomx/defyx/yescrypt-best.o \
             xmrig/crypto/randomx/panthera/sha256.o \
             xmrig/crypto/randomx/panthera/yespower-opt.o \
-				
+			 \	
 			xmrig/crypto/defyx/defyx.o \
 			xmrig/crypto/defyx/KangarooTwelve.o \
 			xmrig/crypto/defyx/KeccakP-1600-reference.o \
@@ -92,7 +92,7 @@ OBJECTS =	xmrig/crypto/cn/asm/cn_main_loop.o \
 			xmrig/3rdparty/libethash/keccakf800.o \
 			xmrig/3rdparty/libethash/ethash_internal.o \
 			 \
-			exports.o \
+			exports.o
 
 all: $(TARGET)
 
