@@ -1,21 +1,9 @@
-/*
-Copyright 2017 Coin Foundry (coinfoundry.org)
-Authors: Oliver Weichhold (oliver@weichhold.com)
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
-associated documentation files (the "Software"), to deal in the Software without restriction,
-including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense,
-and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so,
-subject to the following conditions:
-The above copyright notice and this permission notice shall be included in all copies or substantial
-portions of the Software.
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT
-LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+
+
 
 #include <stdint.h>
+#include <stdexcept>
+
 #include <string>
 #include <algorithm>
 
@@ -24,14 +12,23 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "crypto/common/VirtualMemory.h"
 #include "crypto/cn/CnCtx.h" 
 #include "crypto/cn/CnHash.h"
+
+#include "crypto/randomx/configuration.h"
 #include "crypto/randomx/randomx.h"
-#include "crypto/randomx/KPHash.h"
-#include "crypto/defyx/defyx.h"
-#include <stdexcept>
+#include "crypto/astrobwt/AstroBWT.h"
+#include "crypto/kawpow/KPHash.h"
+#include "3rdparty/libethash/ethash.h"
+
+
 
 extern "C" {
-#include "crypto/defyx/KangarooTwelve.h"
-} 
+#include "crypto/randomx/defyx/KangarooTwelve.h"
+#include "crypto/randomx/blake2/blake2.h"
+#include "c29/portable_endian.h" // for htole32/64
+#include "c29/int-util.h"
+}
+
+#include "c29.h"
 
 #if (defined(__AES__)) || (defined(__ARM_FEATURE_CRYPTO) && (__ARM_FEATURE_CRYPTO == 1))
   #define SOFT_AES false
@@ -65,7 +62,13 @@ extern "C" {
 #define MODULE_API
 #endif
 
-const size_t max_mem_size = 4 * 1024 * 1024;
+const size_t max_mem_size = 20 * 1024 * 1024;
+xmrig::VirtualMemory mem(max_mem_size, true, false, 0, 4096);
+static struct cryptonight_ctx* ctx = nullptr;
+static randomx_cache* rx_cache[xmrig::Algorithm::Id::MAX] = {nullptr};
+static randomx_vm* rx_vm[xmrig::Algorithm::Id::MAX] = {nullptr};
+//static xmrig::Algorithm::Id rx_variant = xmrig::Algorithm::Id::MAX;
+static uint8_t rx_seed_hash[xmrig::Algorithm::Id::MAX][32] = {};
 
 static xmrig::cn_hash_fun get_cn_fn(const int algo) {
   switch (algo) {
@@ -81,7 +84,8 @@ static xmrig::cn_hash_fun get_cn_fn(const int algo) {
     case 14: return FNA(CN_RWZ);
     case 15: return FNA(CN_ZLS);
     case 16: return FNA(CN_DOUBLE);
-    default: return FN(CN_1);
+    case 17: return FNA(CN_CCX);
+    default: return FN(CN_R);
   }
 }
 

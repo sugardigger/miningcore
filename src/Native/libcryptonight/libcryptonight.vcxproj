@@ -172,7 +172,14 @@
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="exports.cpp" />
     <ClCompile Include="stdafx.cpp" />
-    <ClCompile Include="xmrig/crypto/cn/c_blake256.c" />
+	
+	<ClCompile Include="xmrig-override/backend/cpu/Cpu.cpp" />
+    <ClCompile Include="c29b.cc" />
+    <ClCompile Include="c29i.cc" />
+    <ClCompile Include="c29s.cc" />
+    <ClCompile Include="c29v.cc" />
+    
+	<ClCompile Include="xmrig/crypto/cn/c_blake256.c" />
     <ClCompile Include="xmrig/crypto/cn/c_groestl.c" />
     <ClCompile Include="xmrig/crypto/cn/c_jh.c" />
     <ClCompile Include="xmrig/crypto/cn/c_skein.c" />
@@ -213,7 +220,6 @@
     <ClCompile Include="xmrig/3rdparty/argon2/arch/x86_64/lib/argon2-sse2.c" />
     <ClCompile Include="xmrig/3rdparty/argon2/arch/x86_64/lib/argon2-ssse3.c" />
     <ClCompile Include="xmrig/3rdparty/argon2/arch/x86_64/lib/argon2-xop.c" />
-    <ClCompile Include="xmrig/3rdparty/argon2/arch/x86_64/lib/cpu-flags.c" />
     <ClCompile Include="xmrig/crypto/defyx/defyx.cpp" />
     <ClCompile Include="xmrig/crypto/defyx/KangarooTwelve.c" />
     <ClCompile Include="xmrig/crypto/defyx/KeccakP-1600-reference.c" />
