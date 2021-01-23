@@ -184,7 +184,7 @@
     <ClCompile Include="xmrig/crypto/cn/c_jh.c" />
     <ClCompile Include="xmrig/crypto/cn/c_skein.c" />
     <ClCompile Include="xmrig/crypto/common/keccak.cpp" />
-    <ClCompile Include="xmrig-override/crypto/common/Algorithm.cpp" />
+    <ClCompile Include="xmrig-override/base/crypto/Algorithm.cpp" />
     <ClCompile Include="xmrig/crypto/cn/CnCtx.cpp" />
     <ClCompile Include="xmrig/crypto/cn/CnHash.cpp" />
     <ClCompile Include="xmrig/crypto/common/MemoryPool.cpp" />
