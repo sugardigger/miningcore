@@ -75,13 +75,33 @@ struct InitCtx {
 } s;
 
 
+class RandomXCacheWrapper
+{
+public:
+    RandomXCacheWrapper(randomx_cache *cache, void *seedHash)
+    {
+        this->cache = cache;
+        this->seedHash = seedHash;
+    }
+
+    ~RandomXCacheWrapper()
+    {
+        if(cache)
+            randomx_release_cache(cache);
+
+        if(seedHash)
+            free(seedHash);
+    }
+
+    void *seedHash;
+    randomx_cache *cache;
+};
+
+
 // void init_rx(const uint8_t* seed_hash_data, xmrig::Algorithm::Id algo)
 extern "C" MODULE_API RandomXCacheWrapper *randomx_create_cache_export(int variant, const char* seedHash, size_t seedHashSize)
 {
-    // Copy seed
-    auto seedHashCopy = malloc(seedHashSize);
-    memcpy(seedHashCopy, seedHash, seedHashSize);
-
+    
     // Alloc rx_cache[algo]
 	uint8_t* const pmem = static_cast<uint8_t*>(_mm_malloc(RANDOMX_CACHE_MAX_SIZE, 4096));
     auto rx_cache[algo] = randomx_create_cache(static_cast<randomx_flags>(RANDOMX_FLAG_JIT | RANDOMX_FLAG_LARGE_PAGES), pmem);
@@ -110,7 +130,11 @@ extern "C" MODULE_API RandomXCacheWrapper *randomx_create_cache_export(int varia
         default:
             throw std::domain_error("Unknown RandomX algo");
     }
-
+	
+	 // Copy seed
+    auto seedHashCopy = malloc(seedHashSize);
+    memcpy(seedHashCopy, seedHash, seedHashSize);
+	
     // Init cache
     randomx_init_cache(rx_cache[algo], seedHashCopy, seedHashSize);
 
@@ -282,27 +306,14 @@ public:
     randomx_vm *vm;
 };
 
-class RandomXCacheWrapper
-{
-public:
-    RandomXCacheWrapper(randomx_cache *cache, void *seedHash)
-    {
-        this->cache = cache;
-        this->seedHash = seedHash;
-    }
 
-    ~RandomXCacheWrapper()
-    {
-        if(cache)
-            randomx_release_cache(cache);
 
-        if(seedHash)
-            free(seedHash);
-    }
 
-    void *seedHash;
-    randomx_cache *cache;
-};
+
+
+
+
+
 
 
 extern "C" MODULE_API void randomx_free_cache_export(RandomXCacheWrapper *wrapper)
