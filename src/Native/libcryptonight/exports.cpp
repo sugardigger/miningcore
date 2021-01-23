@@ -12,14 +12,11 @@
 #include "crypto/common/VirtualMemory.h"
 #include "crypto/cn/CnCtx.h" 
 #include "crypto/cn/CnHash.h"
-
 #include "crypto/randomx/configuration.h"
 #include "crypto/randomx/randomx.h"
 #include "crypto/astrobwt/AstroBWT.h"
 #include "crypto/kawpow/KPHash.h"
 #include "3rdparty/libethash/ethash.h"
-
-
 
 extern "C" {
 #include "crypto/randomx/defyx/KangarooTwelve.h"

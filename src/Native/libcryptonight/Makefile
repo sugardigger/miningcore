@@ -16,7 +16,6 @@ OBJECTS =	xmrig/crypto/cn/asm/cn_main_loop.o \
 			xmrig-override/backend/cpu/platform/BasicCpuInfo.o \
 			xmrig-override/backend/cpu/platform/BasicCpuInfo_arm.o \
 			 \
-			exports.o \
 			xmrig-override/backend/cpu/Cpu.o \
 			 \
 			c29b.o \
@@ -92,7 +91,8 @@ OBJECTS =	xmrig/crypto/cn/asm/cn_main_loop.o \
 			xmrig-override/crypto/kawpow/KPHash.o \
 			xmrig/3rdparty/libethash/keccakf800.o \
 			xmrig/3rdparty/libethash/ethash_internal.o \
-			
+			 \
+			exports.o \
 
 all: $(TARGET)
 
