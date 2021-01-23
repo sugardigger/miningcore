@@ -252,10 +252,13 @@ extern "C" MODULE_API RandomXCacheWrapper *randomx_create_cache_export(int varia
     memcpy(seedHashCopy, seedHash, seedHashSize);
 
     // Alloc cache
-    auto cache = randomx_create_cache(static_cast<randomx_flags>(RANDOMX_FLAG_JIT | RANDOMX_FLAG_LARGE_PAGES));
+	uint8_t* const pmem = static_cast<uint8_t*>(_mm_malloc(RANDOMX_CACHE_MAX_SIZE, 4096));
+    auto cache = randomx_create_cache(static_cast<randomx_flags>(RANDOMX_FLAG_JIT | RANDOMX_FLAG_LARGE_PAGES), pmem);
 
     if (!cache)
-        cache = randomx_create_cache(static_cast<randomx_flags>(RANDOMX_FLAG_JIT));
+        cache = randomx_create_cache(RANDOMX_FLAG_JIT, pmem);
+		
+	update_cache = true;
 
     switch (variant) {
         case 0:
