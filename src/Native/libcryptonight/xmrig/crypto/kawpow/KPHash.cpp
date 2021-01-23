@@ -279,10 +279,7 @@ void KPHash::calculate(const KPCache& light_cache, uint32_t block_height, const 
     uint32_t jsr0 = jsr;
     uint32_t jcong0 = jcong;
 
-    // Miningcore exclude
-	// const bool has_popcnt = Cpu::info()->has(ICpuInfo::FLAG_POPCNT);
-    const bool has_popcnt = false;
-
+    const bool has_popcnt = Cpu::info()->has(ICpuInfo::FLAG_POPCNT);
 
     for (uint32_t r = 0; r < ETHASH_ACCESSES; ++r) {
         uint32_t item_index = (mix[r % LANES][0] % num_items) * 4;

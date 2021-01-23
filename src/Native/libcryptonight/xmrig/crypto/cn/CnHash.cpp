@@ -219,7 +219,7 @@ static void patchAsmVariants()
         patchCode(cn_double_double_mainloop_sandybridge_asm, cnv2_double_mainloop_sandybridge_asm,  ITER);
     }
 
-    VirtualMemory::protectRX(base, allocation_size);
+    VirtualMemory::protectExecutableMemory(base, allocation_size);
     VirtualMemory::flushInstructionCache(base, allocation_size);
 }
 } // namespace xmrig
@@ -284,6 +284,11 @@ xmrig::CnHash::CnHash()
 #   ifdef XMRIG_ALGO_ASTROBWT
     m_map[Algorithm::ASTROBWT_DERO][AV_SINGLE][Assembly::NONE]      = astrobwt::single_hash<Algorithm::ASTROBWT_DERO>;
     m_map[Algorithm::ASTROBWT_DERO][AV_SINGLE_SOFT][Assembly::NONE] = astrobwt::single_hash<Algorithm::ASTROBWT_DERO>;
+#   endif
+
+#   ifdef XMRIG_ALGO_CN_GPU
+    m_map[Algorithm::CN_GPU][AV_SINGLE][Assembly::NONE]      = cryptonight_single_hash_gpu<Algorithm::CN_GPU, false>;
+    m_map[Algorithm::CN_GPU][AV_SINGLE_SOFT][Assembly::NONE] = cryptonight_single_hash_gpu<Algorithm::CN_GPU, true>;
 #   endif
 
 #   ifdef XMRIG_FEATURE_ASM

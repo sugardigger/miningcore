@@ -176,8 +176,8 @@
     <ClCompile Include="xmrig/crypto/cn/c_groestl.c" />
     <ClCompile Include="xmrig/crypto/cn/c_jh.c" />
     <ClCompile Include="xmrig/crypto/cn/c_skein.c" />
-    <ClCompile Include="xmrig/base/crypto/keccak.cpp" />
-    <ClCompile Include="miningcore/Algorithm.cpp" />
+    <ClCompile Include="xmrig/crypto/common/keccak.cpp" />
+    <ClCompile Include="xmrig-override/crypto/common/Algorithm.cpp" />
     <ClCompile Include="xmrig/crypto/cn/CnCtx.cpp" />
     <ClCompile Include="xmrig/crypto/cn/CnHash.cpp" />
     <ClCompile Include="xmrig/crypto/common/MemoryPool.cpp" />
@@ -201,10 +201,7 @@
     <ClCompile Include="xmrig/crypto/randomx/virtual_machine.cpp" />
     <ClCompile Include="xmrig/crypto/randomx/vm_compiled_light.cpp" />
     <ClCompile Include="xmrig/crypto/randomx/blake2/blake2b.c" />
-	<ClCompile Include="xmrig/crypto/rx/RxCache.cpp" />
-	<ClCompile Include="xmrig/crypto/kawpow/KPHash.cpp" />
-	<ClCompile Include="xmrig/crypto/kawpow/KPCache.cpp" />
-	<ClCompile Include="xmrig/3rdparty/argon2/lib/argon2.c" />
+    <ClCompile Include="xmrig/3rdparty/argon2/lib/argon2.c" />
     <ClCompile Include="xmrig/3rdparty/argon2/lib/core.c" />
     <ClCompile Include="xmrig/3rdparty/argon2/lib/encoding.c" />
     <ClCompile Include="xmrig/3rdparty/argon2/lib/genkat.c" />
@@ -224,6 +221,8 @@
     <ClCompile Include="xmrig/crypto/defyx/yescrypt-best.c" />
     <ClCompile Include="xmrig/crypto/defyx/sha256.c" />
     <ClCompile Include="xmrig/crypto/cn/r/CryptonightR_gen.cpp" />
+    <ClCompile Include="xmrig/crypto/cn/gpu/cn_gpu_avx.cpp" />
+    <ClCompile Include="xmrig/crypto/cn/gpu/cn_gpu_ssse3.cpp" />
     <ClCompile Include="xmrig/crypto/randomx/jit_compiler_x86.cpp" />
     <ClCompile Include="xmrig\crypto\common\VirtualMemory_win.cpp" />
     <None Include="Makefile" />

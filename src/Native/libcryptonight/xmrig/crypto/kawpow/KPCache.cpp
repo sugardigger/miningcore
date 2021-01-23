@@ -105,9 +105,8 @@ bool KPCache::init(uint32_t epoch)
 
     m_size = size;
     m_epoch = epoch;
-	
-	// Miningcore exclude
-    //LOG_INFO("%s " YELLOW("KawPow") " light cache for epoch " WHITE_BOLD("%u") " calculated " BLACK_BOLD("(%" PRIu64 "ms)"), Tags::miner(), epoch, Chrono::steadyMSecs() - start_ms);
+
+    LOG_INFO("%s " YELLOW("KawPow") " light cache for epoch " WHITE_BOLD("%u") " calculated " BLACK_BOLD("(%" PRIu64 "ms)"), Tags::miner(), epoch, Chrono::steadyMSecs() - start_ms);
 
     return true;
 }

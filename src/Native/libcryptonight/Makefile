@@ -11,12 +11,13 @@ TARGET  = libcryptonight.so
 OBJECTS =	xmrig/crypto/cn/asm/cn_main_loop.o \
 			xmrig/crypto/cn/asm/CryptonightR_template.o \
 			xmrig/crypto/cn/r/CryptonightR_gen.o \
+			xmrig/crypto/cn/gpu/cn_gpu_ssse3.o \
 			xmrig/crypto/cn/c_blake256.o \
 			xmrig/crypto/cn/c_groestl.o \
 			xmrig/crypto/cn/c_jh.o \
 			xmrig/crypto/cn/c_skein.o \
-			xmrig/base/crypto/keccak.o \
-			miningcore/Algorithm.o \
+			xmrig/crypto/common/keccak.o \
+			xmrig-override/crypto/common/Algorithm.o \
 			xmrig/crypto/cn/CnCtx.o \
 			xmrig/crypto/cn/CnHash.o \
 			xmrig/crypto/common/MemoryPool.o \
@@ -42,9 +43,6 @@ OBJECTS =	xmrig/crypto/cn/asm/cn_main_loop.o \
 			xmrig/crypto/randomx/virtual_machine.o \
 			xmrig/crypto/randomx/vm_compiled_light.o \
 			xmrig/crypto/randomx/blake2/blake2b.o \
-			xmrig/crypto/rx/RxCache.o \
-			xmrig/crypto/kawpow/KPHash.o \
-			xmrig/crypto/kawpow/KPCache.o \
 			xmrig/crypto/randomx/jit_compiler_x86_static.o \
 			xmrig/crypto/randomx/jit_compiler_x86.o \
 			 \

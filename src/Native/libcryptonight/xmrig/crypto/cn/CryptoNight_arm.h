@@ -33,6 +33,7 @@
 #include "crypto/cn/CryptoNight_monero.h"
 #include "crypto/cn/CryptoNight.h"
 #include "crypto/cn/soft_aes.h"
+#include "crypto/common/portable/mm_malloc.h"
 
 
 extern "C"
@@ -65,6 +66,34 @@ static inline void do_skein_hash(const uint8_t *input, size_t len, uint8_t *outp
 
 
 void (* const extra_hashes[4])(const uint8_t *, size_t, uint8_t *) = {do_blake_hash, do_groestl_hash, do_jh_hash, do_skein_hash};
+
+
+static inline __attribute__((always_inline)) __m128i _mm_set_epi64x(const uint64_t a, const uint64_t b)
+{
+    return vcombine_u64(vcreate_u64(b), vcreate_u64(a));
+}
+
+
+#if __ARM_FEATURE_CRYPTO
+static inline __attribute__((always_inline)) __m128i _mm_aesenc_si128(__m128i v, __m128i rkey)
+{
+    alignas(16) const __m128i zero = { 0 };
+    return veorq_u8(vaesmcq_u8(vaeseq_u8(v, zero)), rkey );
+}
+#else
+static inline __attribute__((always_inline)) __m128i _mm_aesenc_si128(__m128i v, __m128i rkey)
+{
+    alignas(16) const __m128i zero = { 0 };
+    return zero;
+}
+#endif
+
+
+/* this one was not implemented yet so here it is */
+static inline __attribute__((always_inline)) uint64_t _mm_cvtsi128_si64(__m128i a)
+{
+    return vgetq_lane_u64(a, 0);
+}
 
 
 #if defined (__arm64__) || defined (__aarch64__)
@@ -265,7 +294,11 @@ static inline void cn_implode_scratchpad(const __m128i *input, __m128i *output)
 {
     constexpr CnAlgo<ALGO> props;
 
+#   ifdef XMRIG_ALGO_CN_GPU
+    constexpr bool IS_HEAVY = props.isHeavy() || ALGO == Algorithm::CN_GPU;
+#   else
     constexpr bool IS_HEAVY = props.isHeavy();
+#   endif
 
     __m128i xout0, xout1, xout2, xout3, xout4, xout5, xout6, xout7;
     __m128i k0, k1, k2, k3, k4, k5, k6, k7, k8, k9;
@@ -578,6 +611,66 @@ inline void cryptonight_single_hash(const uint8_t *__restrict__ input, size_t si
     keccakf(h0, 24);
     extra_hashes[ctx[0]->state[0] & 3](ctx[0]->state, 200, output);
 }
+
+
+} /* namespace xmrig */
+
+
+#ifdef XMRIG_ALGO_CN_GPU
+template<size_t ITER, uint32_t MASK>
+void cn_gpu_inner_arm(const uint8_t *spad, uint8_t *lpad);
+
+
+namespace xmrig {
+
+
+template<size_t MEM>
+void cn_explode_scratchpad_gpu(const uint8_t *input, uint8_t *output)
+{
+    constexpr size_t hash_size = 200; // 25x8 bytes
+    alignas(16) uint64_t hash[25];
+
+    for (uint64_t i = 0; i < MEM / 512; i++) {
+        memcpy(hash, input, hash_size);
+        hash[0] ^= i;
+
+        xmrig::keccakf(hash, 24);
+        memcpy(output, hash, 160);
+        output += 160;
+
+        xmrig::keccakf(hash, 24);
+        memcpy(output, hash, 176);
+        output += 176;
+
+        xmrig::keccakf(hash, 24);
+        memcpy(output, hash, 176);
+        output += 176;
+    }
+}
+
+
+template<xmrig::Algorithm::Id ALGO, bool SOFT_AES>
+inline void cryptonight_single_hash_gpu(const uint8_t *__restrict__ input, size_t size, uint8_t *__restrict__ output, cryptonight_ctx **__restrict__ ctx, uint64_t height)
+{
+    constexpr CnAlgo<ALGO> props;
+
+    keccak(input, size, ctx[0]->state);
+    cn_explode_scratchpad_gpu<props.memory()>(ctx[0]->state, ctx[0]->memory);
+
+    fesetround(FE_TONEAREST);
+
+    cn_gpu_inner_arm<props.iterations(), props.mask()>(ctx[0]->state, ctx[0]->memory);
+
+    cn_implode_scratchpad<ALGO, SOFT_AES>(reinterpret_cast<const __m128i *>(ctx[0]->memory), reinterpret_cast<__m128i *>(ctx[0]->state));
+    keccakf(reinterpret_cast<uint64_t*>(ctx[0]->state), 24);
+    memcpy(output, ctx[0]->state, 32);
+}
+
+} /* namespace xmrig */
+#endif
+
+
+namespace xmrig {
 
 
 template<Algorithm::Id ALGO, bool SOFT_AES>

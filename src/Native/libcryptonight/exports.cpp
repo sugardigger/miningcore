@@ -25,6 +25,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "crypto/cn/CnCtx.h" 
 #include "crypto/cn/CnHash.h"
 #include "crypto/randomx/randomx.h"
+#include "crypto/randomx/KPHash.h"
 #include "crypto/defyx/defyx.h"
 #include <stdexcept>
 
