@@ -13,9 +13,7 @@ OBJECTS =	xmrig/crypto/cn/asm/cn_main_loop.o \
 			xmrig/crypto/cn/r/CryptonightR_gen.o \
 			xmrig/crypto/cn/gpu/cn_gpu_avx.o \
 			xmrig/crypto/cn/gpu/cn_gpu_ssse3.o \
-			xmrig/crypto/cn/gpu/cn_gpu_arm.o \
 			xmrig-override/backend/cpu/platform/BasicCpuInfo.o \
-			xmrig-override/backend/cpu/platform/BasicCpuInfo_arm.o \
 			 \
 			xmrig-override/backend/cpu/Cpu.o \
 			 \
