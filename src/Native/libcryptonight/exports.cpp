@@ -112,10 +112,10 @@ extern "C" MODULE_API RandomXCacheWrapper *randomx_create_cache_export(int varia
     }
 
     // Init cache
-    randomx_init_cache(cache, seedHashCopy, seedHashSize);
+    randomx_init_cache(rx_cache[algo], seedHashCopy, seedHashSize);
 
     // Wrap it
-    auto wrapper = new RandomXCacheWrapper(cache, seedHashCopy);
+    auto wrapper = new RandomXCacheWrapper(rx_cache[algo], seedHashCopy);
     return wrapper;
 }
 
