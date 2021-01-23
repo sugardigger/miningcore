@@ -80,13 +80,6 @@ OBJECTS =	xmrig/crypto/cn/asm/cn_main_loop.o \
             xmrig/crypto/randomx/defyx/yescrypt-best.o \
             xmrig/crypto/randomx/panthera/sha256.o \
             xmrig/crypto/randomx/panthera/yespower-opt.o \
-			 \	
-			xmrig/crypto/defyx/defyx.o \
-			xmrig/crypto/defyx/KangarooTwelve.o \
-			xmrig/crypto/defyx/KeccakP-1600-reference.o \
-			xmrig/crypto/defyx/KeccakSpongeWidth1600.o \
-			xmrig/crypto/defyx/yescrypt-best.o \
-			xmrig/crypto/defyx/sha256.o \
 			 \
 			xmrig-override/crypto/kawpow/KPHash.o \
 			xmrig/3rdparty/libethash/keccakf800.o \
