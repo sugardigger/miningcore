@@ -67,6 +67,13 @@ static randomx_vm* rx_vm[xmrig::Algorithm::Id::MAX] = {nullptr};
 //static xmrig::Algorithm::Id rx_variant = xmrig::Algorithm::Id::MAX;
 static uint8_t rx_seed_hash[xmrig::Algorithm::Id::MAX][32] = {};
 
+
+struct InitCtx {
+    InitCtx() {
+        xmrig::CnCtx::create(&ctx, static_cast<uint8_t*>(_mm_malloc(max_mem_size, 4096)), max_mem_size, 1);
+    }
+} s;
+
 static xmrig::cn_hash_fun get_cn_fn(const int algo) {
   switch (algo) {
     case 0:  return FN(CN_0);
@@ -260,11 +267,17 @@ extern "C" MODULE_API RandomXCacheWrapper *randomx_create_cache_export(int varia
         case 2:
             randomx_apply_config(RandomX_ArqmaConfig);
             break;
+		case 3:
+            randomx_apply_config(RandomX_Scala2Config);
+            break;
         case 17:
             randomx_apply_config(RandomX_WowneroConfig);
             break;
         case 18:
             randomx_apply_config(RandomX_LokiConfig);
+            break;
+		case 19:
+            randomx_apply_config(RandomX_KevaConfig);
             break;
         default:
             throw std::domain_error("Unknown RandomX algo");
