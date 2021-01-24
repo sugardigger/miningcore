@@ -206,7 +206,7 @@ extern "C" MODULE_API void randomx_export(RandomXVmWrapper* wrapper, const char*
         default: algo = xmrig::Algorithm::RX_0;
     }
 	
-    default: randomx_calculate_hash(vm, reinterpret_cast<const uint8_t*>(input), inputSize, reinterpret_cast<uint8_t*>(output), algo);
+    randomx_calculate_hash(vm, reinterpret_cast<const uint8_t*>(input), inputSize, reinterpret_cast<uint8_t*>(output), algo);
     
 }
 
