@@ -193,20 +193,18 @@ extern "C" MODULE_API RandomXVmWrapper *randomx_create_vm_export(randomx_cache *
 extern "C" MODULE_API void randomx_export(RandomXVmWrapper* wrapper, const char* input, unsigned char *output, size_t inputSize, uint32_t variant, uint64_t height)
 {
     auto vm = wrapper->vm;
-	// auto xalgo;
-	const xmrig::Algorithm algo
+	const xmrig::Algorithm xalgo;
     switch (variant) {
-        case 0:  algo = xmrig::Algorithm::RX_0; break;
+        case 0:  xalgo = xmrig::Algorithm::RX_0; break;
         //case 1:  xalgo = xmrig::Algorithm::RX_DEFYX; break;
-        case 2:  algo = xmrig::Algorithm::RX_ARQ; break;
-        case 3:  algo = xmrig::Algorithm::RX_XLA; break;
-        case 17: algo = xmrig::Algorithm::RX_WOW; break;
+        case 2:  xalgo = xmrig::Algorithm::RX_ARQ; break;
+        case 3:  xalgo = xmrig::Algorithm::RX_XLA; break;
+        case 17: xalgo = xmrig::Algorithm::RX_WOW; break;
         //case 18: xalgo = xmrig::Algorithm::RX_LOKI; break;
-        case 19: algo = xmrig::Algorithm::RX_KEVA; break;
-        default: algo = xmrig::Algorithm::RX_0;
+        case 19: xalgo = xmrig::Algorithm::RX_KEVA; break;
+        default: xalgo = xmrig::Algorithm::RX_0;
     }
-	
-    randomx_calculate_hash(vm, reinterpret_cast<const uint8_t*>(input), inputSize, reinterpret_cast<uint8_t*>(output), algo);
+	randomx_calculate_hash(vm, reinterpret_cast<const uint8_t*>(input), inputSize, reinterpret_cast<uint8_t*>(output), xalgo);
     
 }
 
