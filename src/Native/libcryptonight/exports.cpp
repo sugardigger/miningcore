@@ -193,7 +193,7 @@ extern "C" MODULE_API RandomXVmWrapper *randomx_create_vm_export(randomx_cache *
 extern "C" MODULE_API void randomx_export(RandomXVmWrapper* wrapper, const char* input, unsigned char *output, size_t inputSize, uint32_t variant, uint64_t height)
 {
     auto vm = wrapper->vm;
-	const xmrig::Algorithm xalgo;
+	xmrig::Algorithm xalgo;
     switch (variant) {
         case 0:  xalgo = xmrig::Algorithm::RX_0; break;
         //case 1:  xalgo = xmrig::Algorithm::RX_DEFYX; break;
