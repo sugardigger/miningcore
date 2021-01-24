@@ -67,7 +67,6 @@ OBJECTS =	xmrig/crypto/cn/asm/cn_main_loop.o \
 			xmrig/3rdparty/argon2/arch/x86_64/lib/argon2-ssse3.o \
 			xmrig/3rdparty/argon2/arch/x86_64/lib/argon2-xop.o \
 			xmrig/3rdparty/argon2/arch/x86_64/lib/cpu-flags.o \
-			xmrig/3rdparty/argon2/arch/generic/lib/argon2-arch.o \
 			 \
 			xmrig/crypto/astrobwt/AstroBWT.o \
             xmrig/crypto/astrobwt/Salsa20.o \
