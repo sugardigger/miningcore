@@ -75,6 +75,7 @@ struct InitCtx {
 } s;
 
 
+// variant: RandomX
 class RandomXCacheWrapper
 {
 public:
@@ -319,6 +320,10 @@ extern "C" MODULE_API void cryptonight_free_ctx_export(CryptonightContextWrapper
 	delete wrapper;
 }
 
+
+// --------------------------------
+// variant: cryptonight
+// --------------------------------
 extern "C" MODULE_API void cryptonight_export(CryptonightContextWrapper* wrapper, const char* input, unsigned char *output, size_t inputSize, uint32_t variant, uint64_t height)
 {
     auto ctx = wrapper->ctx;
@@ -327,6 +332,9 @@ extern "C" MODULE_API void cryptonight_export(CryptonightContextWrapper* wrapper
     fn(reinterpret_cast<const uint8_t*>(input), inputSize, reinterpret_cast<uint8_t*>(output), &ctx, height);
 }
 
+// --------------------------------
+// variant: cryptonight-light
+// --------------------------------
 extern "C" MODULE_API void cryptonight_light_export(CryptonightContextWrapper* wrapper, const char* input, unsigned char *output, size_t inputSize, uint32_t variant, uint64_t height)
 {
     auto ctx = wrapper->ctx;
@@ -335,6 +343,9 @@ extern "C" MODULE_API void cryptonight_light_export(CryptonightContextWrapper* w
     fn(reinterpret_cast<const uint8_t*>(input), inputSize, reinterpret_cast<uint8_t*>(output), &ctx, height);
 }
 
+// --------------------------------
+// variant: cryptonight-heavy
+// --------------------------------
 extern "C" MODULE_API void cryptonight_heavy_export(CryptonightContextWrapper* wrapper, const char* input, unsigned char *output, size_t inputSize, uint32_t variant, uint64_t height)
 {
     auto ctx = wrapper->ctx;
@@ -343,6 +354,9 @@ extern "C" MODULE_API void cryptonight_heavy_export(CryptonightContextWrapper* w
     fn(reinterpret_cast<const uint8_t*>(input), inputSize, reinterpret_cast<uint8_t*>(output), &ctx, height);
 }
 
+// --------------------------------
+// variant: cryptonight-pico
+// --------------------------------
 extern "C" MODULE_API void cryptonight_pico_export(CryptonightContextWrapper* wrapper, const char* input, unsigned char *output, size_t inputSize, uint32_t variant, uint64_t height)
 {
     auto ctx = wrapper->ctx;
@@ -351,7 +365,46 @@ extern "C" MODULE_API void cryptonight_pico_export(CryptonightContextWrapper* wr
     fn(reinterpret_cast<const uint8_t*>(input), inputSize, reinterpret_cast<uint8_t*>(output), &ctx, height);
 }
 
+// --------------------------------
+// variant: argon2
+// --------------------------------
+extern "C" MODULE_API void argon2_export(CryptonightContextWrapper* wrapper, const char* input, unsigned char *output, size_t inputSize, uint32_t variant, uint64_t height)
+{
+    auto ctx = wrapper->ctx;
+    const xmrig::cn_hash_fun fn = get_argon2_fn(variant);
 
+    fn(reinterpret_cast<const uint8_t*>(input), inputSize, reinterpret_cast<uint8_t*>(output), &ctx, height);
+}
+
+// --------------------------------
+// variant: astrobwt
+// --------------------------------
+extern "C" MODULE_API void astrobwt_export(CryptonightContextWrapper* wrapper, const char* input, unsigned char *output, size_t inputSize, uint32_t variant, uint64_t height)
+{
+    auto ctx = wrapper->ctx;
+    const xmrig::cn_hash_fun fn = get_astrobwt_fn(variant);
+
+    fn(reinterpret_cast<const uint8_t*>(input), inputSize, reinterpret_cast<uint8_t*>(output), &ctx, height);
+}
+
+// --------------------------------
+// variant: KangarooTwelve k12
+// --------------------------------
+extern "C" MODULE_API void k12_export(CryptonightContextWrapper* wrapper, const char* input, unsigned char *output, size_t inputSize, uint32_t variant, uint64_t height)
+{
+    
+	KangarooTwelve((const unsigned char *)(input), inputSize, (unsigned char *)output, 32, 0, 0);
+}
+
+// --------------------------------
+// variant: kawpow
+// --------------------------------
+extern "C" MODULE_API void kawpow_export(CryptonightContextWrapper* wrapper, const char* input, unsigned char *output, size_t inputSize, uint32_t variant, uint64_t height)
+{
+
+
+	
+}
 
 
 
