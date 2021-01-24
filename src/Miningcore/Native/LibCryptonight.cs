@@ -124,8 +124,8 @@ namespace Miningcore.Native
         [DllImport("libcryptonight", EntryPoint = "randomx_free_cache_export", CallingConvention = CallingConvention.Cdecl)]
         private static extern void randomx_free_cache(IntPtr cache);
 
-        [DllImport("libcryptonight", EntryPoint = "randomx_set_vm_cache_export", CallingConvention = CallingConvention.Cdecl)]
-        private static extern void randomx_set_vm_cache(IntPtr vm, IntPtr cache);
+        [DllImport("libcryptonight", EntryPoint = "randomx_vm_set_cache_export", CallingConvention = CallingConvention.Cdecl)]
+        private static extern void randomx_vm_set_cache(IntPtr vm, IntPtr cache);
 
         [DllImport("libcryptonight", EntryPoint = "randomx_export", CallingConvention = CallingConvention.Cdecl)]
         private static extern int randomx(IntPtr ctx, byte* input, byte* output, uint inputLength, CryptonightVariant variant, ulong height);
@@ -300,7 +300,7 @@ namespace Miningcore.Native
                 if(randomxVm == IntPtr.Zero)
                     randomxVm = randomx_create_vm(cache);
                 else
-                    randomx_set_vm_cache(randomxVm, cache);
+                    randomx_vm_set_cache(randomxVm, cache);
 
                 fixed(byte* input = data)
                 {
