@@ -134,13 +134,15 @@ namespace Miningcore.Blockchain.Ethereum
 
                 for(var j = 0; j < blockInfos.Length; j++)
                 {
+                    logger.Info(() => $"Blocks count to process : {blockInfos.Length - j}");
                     var blockInfo = blockInfos[j];
                     var block = page[j];
 
                     // extract confirmation data from stored block
                     var mixHash = block.TransactionConfirmationData.Split(":").First();
                     var nonce = block.TransactionConfirmationData.Split(":").Last();
-                    logger.Info(() => $"mixHash: {mixHash}   nonce: {nonce}");
+                    logger.Info(() => $"** mixHash : {mixHash}");
+                    logger.Info(() => $"** nonce   : {nonce}");
 
                     // update progress
                     block.ConfirmationProgress = Math.Min(1.0d, (double) (latestBlockHeight - block.BlockHeight) / EthereumConstants.MinConfimations);
@@ -156,10 +158,13 @@ namespace Miningcore.Blockchain.Ethereum
                         // NOTE: removal of first character of both sealfields caused by
                         // https://github.com/paritytech/parity/issues/1090
                         // var match = isParity ? true : blockInfo.SealFields[0].Substring(2) == mixHash && blockInfo.SealFields[1].Substring(2) == nonce;
-                        var match = blockInfo.SealFields[0].Substring(2) == mixHash && blockInfo.SealFields[1].Substring(2) == nonce;
+                        logger.Info(() => $"** isParity : {isParity}");
+                        logger.Info(() => $"** SealFiels[0]: {blockInfo.SealFields[0]}");
+                        logger.Info(() => $"** SealFiels[1]: {blockInfo.SealFields[1]}");
 
                         // mature?
-                        if(match && (latestBlockHeight - block.BlockHeight >= EthereumConstants.MinConfimations))
+                        //if(match && (latestBlockHeight - block.BlockHeight >= EthereumConstants.MinConfimations))
+                        if(latestBlockHeight - block.BlockHeight >= EthereumConstants.MinConfimations)
                         {
                             block.Status = BlockStatus.Confirmed;
                             block.ConfirmationProgress = 1;
