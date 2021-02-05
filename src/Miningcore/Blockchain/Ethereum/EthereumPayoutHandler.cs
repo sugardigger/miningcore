@@ -422,7 +422,11 @@ namespace Miningcore.Blockchain.Ethereum
             if(results.Any(x => x.Error != null))
             {
                 if(results[1].Error != null)
+                {
                     isParity = false;
+                    logger.Info(() => $"Parity is not detected. Switching to Geth.");
+                }
+                   
 
                 var errors = results.Take(1).Where(x => x.Error != null)
                     .ToArray();
@@ -433,9 +437,9 @@ namespace Miningcore.Blockchain.Ethereum
 
             // convert network
             var netVersion = results[0].Response.ToObject<string>();
-            var parityChain = isParity ?
-                results[1].Response.ToObject<string>() :
-                (extraPoolConfig?.ChainTypeOverride ?? "Mainnet");
+            logger.Info(() => $"Ethereum network: {netVersion}");
+
+            var parityChain = isParity ? results[1].Response.ToObject<string>() : ( extraPoolConfig?.ChainTypeOverride ?? "Mainnet" );
 
             EthereumUtils.DetectNetworkAndChain(netVersion, parityChain, out networkType, out chainType);
         }
