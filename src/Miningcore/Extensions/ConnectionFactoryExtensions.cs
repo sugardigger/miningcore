@@ -73,10 +73,16 @@ namespace Miningcore.Extensions
                             tx.Commit();
                     }
 
-                    catch(InvalidOperationException ex)
+                    catch(Exception ex)
                     {
-                        Console.WriteLine($"ERROR: Database transaction failed {ex}");
-                        tx.Rollback();
+                        try
+                        {
+                            tx.Rollback();
+                        }
+                        catch
+                        {
+                            Console.WriteLine($"ERROR: Database transaction failed {ex}");
+                        }
                         //throw;
                     }
                 }
