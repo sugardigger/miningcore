@@ -140,6 +140,7 @@ namespace Miningcore.Blockchain.Ethereum
                     // extract confirmation data from stored block
                     var mixHash = block.TransactionConfirmationData.Split(":").First();
                     var nonce = block.TransactionConfirmationData.Split(":").Last();
+                    logger.Info(() => $"mixHash: {mixHash}   nonce: {nonce}");
 
                     // update progress
                     block.ConfirmationProgress = Math.Min(1.0d, (double) (latestBlockHeight - block.BlockHeight) / EthereumConstants.MinConfimations);
@@ -148,15 +149,13 @@ namespace Miningcore.Blockchain.Ethereum
                     messageBus.NotifyBlockConfirmationProgress(poolConfig.Id, block, coin);
 
                     // is it block mined by us?
+                    logger.Info(() => $"Equals: {blockInfo.Miner} =?= {poolConfig.Address}");
                     if(string.Equals(blockInfo.Miner, poolConfig.Address, StringComparison.OrdinalIgnoreCase))
                     {
                         // additional check
                         // NOTE: removal of first character of both sealfields caused by
                         // https://github.com/paritytech/parity/issues/1090
-                        var match = isParity ?
-                            true :
-                            blockInfo.SealFields[0].Substring(2) == mixHash &&
-                            blockInfo.SealFields[1].Substring(2) == nonce;
+                        var match = isParity ? true : blockInfo.SealFields[0].Substring(2) == mixHash && blockInfo.SealFields[1].Substring(2) == nonce;
 
                         // mature?
                         if(match && (latestBlockHeight - block.BlockHeight >= EthereumConstants.MinConfimations))
