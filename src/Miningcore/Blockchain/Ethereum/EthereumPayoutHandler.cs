@@ -158,9 +158,8 @@ namespace Miningcore.Blockchain.Ethereum
                         // NOTE: removal of first character of both sealfields caused by
                         // https://github.com/paritytech/parity/issues/1090
                         // var match = isParity ? true : blockInfo.SealFields[0].Substring(2) == mixHash && blockInfo.SealFields[1].Substring(2) == nonce;
-                        logger.Info(() => $"** isParity : {isParity}");
-                        logger.Info(() => $"** SealFiels[0]: {blockInfo.SealFields[0]}");
-                        logger.Info(() => $"** SealFiels[1]: {blockInfo.SealFields[1]}");
+                        logger.Info(() => $"** Ethereum Deamon is Parity : {isParity}");
+                        
 
                         // mature?
                         //if(match && (latestBlockHeight - block.BlockHeight >= EthereumConstants.MinConfimations))
