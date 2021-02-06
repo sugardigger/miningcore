@@ -15,7 +15,6 @@ namespace Miningcore.Blockchain.Ethereum
                 if(!Enum.IsDefined(typeof(EthereumNetworkType), networkType))
                     networkType = EthereumNetworkType.Unknown;
             }
-
             else
                 networkType = EthereumNetworkType.Unknown;
 

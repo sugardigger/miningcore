@@ -75,15 +75,8 @@ namespace Miningcore.Extensions
 
                     catch(Exception ex)
                     {
-                        try
-                        {
-                            tx.Rollback();
-                        }
-                        catch
-                        {
-                            throw new Exception($"ERROR: Database transaction failed {ex.Message}");
-                        }
-
+                        tx.Rollback();
+                        throw new Exception($"ERROR: Database transaction failed {ex.Message}");
                     }
                 }
             }
@@ -112,18 +105,10 @@ namespace Miningcore.Extensions
                         return result;
                     }
 
-                    catch(Exception ex)
+                    catch
                     {
-                     
-                        try
-                        {
-                            tx.Rollback();
-                        }
-                        catch
-                        {
-                            
-                        }
-                        throw new Exception($"ERROR: Database transaction failed {ex.Message}");
+                        tx.Rollback();
+                        throw;
                     }
                 }
             }

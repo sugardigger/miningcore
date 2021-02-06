@@ -276,9 +276,7 @@ namespace Miningcore.Blockchain.Ethereum
             // ensure we have peers
             var infoResponse = await daemon.ExecuteCmdSingleAsync<string>(logger, EthCommands.GetPeerCount);
 
-            if(networkType == EthereumNetworkType.Main &&
-                (infoResponse.Error != null || string.IsNullOrEmpty(infoResponse.Response) ||
-                    infoResponse.Response.IntegralFromHex<int>() < EthereumConstants.MinPayoutPeerCount))
+            if(networkType == EthereumNetworkType.Main && (infoResponse.Error != null || string.IsNullOrEmpty(infoResponse.Response) || infoResponse.Response.IntegralFromHex<int>() < EthereumConstants.MinPayoutPeerCount))
             {
                 logger.Warn(() => $"[{LogCategory}] Payout aborted. Not enough peers (4 required)");
                 return;

@@ -675,8 +675,7 @@ namespace Miningcore.Blockchain.Ethereum
             {
                 var enableStreaming = extraPoolConfig?.EnableDaemonWebsocketStreaming == true;
 
-                if(enableStreaming && !poolConfig.Daemons.Any(x =>
-                   x.Extra.SafeExtensionDataAs<EthereumDaemonEndpointConfigExtra>()?.PortWs.HasValue == true))
+                if(enableStreaming && !poolConfig.Daemons.Any(x => x.Extra.SafeExtensionDataAs<EthereumDaemonEndpointConfigExtra>()?.PortWs.HasValue == true))
                 {
                     logger.Warn(() => $"'{nameof(EthereumPoolConfigExtra.EnableDaemonWebsocketStreaming).ToLowerCamelCase()}' enabled but not a single daemon found with a configured websocket port ('{nameof(EthereumDaemonEndpointConfigExtra.PortWs).ToLowerCamelCase()}'). Falling back to polling.");
                     enableStreaming = false;
