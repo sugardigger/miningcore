@@ -19,20 +19,43 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <string>
 #include <algorithm>
 
-#if defined(__ARM_ARCH)
-#include "xmrig/crypto/CryptoNight_arm.h"
+#include "crypto/cn/CryptoNight.h"
+
+#include "crypto/common/VirtualMemory.h"
+#include "crypto/cn/CnCtx.h" 
+#include "crypto/cn/CnHash.h"
+#include "crypto/randomx/randomx.h"
+#include "crypto/defyx/defyx.h"
+#include <stdexcept>
+
+extern "C" {
+#include "crypto/defyx/KangarooTwelve.h"
+} 
+
+#if (defined(__AES__)) || (defined(__ARM_FEATURE_CRYPTO) && (__ARM_FEATURE_CRYPTO == 1))
+  #define SOFT_AES false
+  #if defined(CPU_INTEL)
+    //#warning Using IvyBridge assembler implementation
+    #define ASM_TYPE xmrig::Assembly::INTEL
+  #elif defined(CPU_AMD)
+    //#warning Using Ryzen assembler implementation
+    #define ASM_TYPE xmrig::Assembly::RYZEN
+  #elif defined(CPU_AMD_OLD)
+    //#warning Using Bulldozer assembler implementation
+    #define ASM_TYPE xmrig::Assembly::BULLDOZER
+  #elif !defined(__ARM_ARCH)
+    #error Unknown ASM implementation!
+  #endif
 #else
-#include "xmrig/extra.h"
-#include "xmrig/crypto/CryptoNight_x86.h"
+  //#warning Using software AES
+  #define SOFT_AES true
 #endif
 
-#include "xmrig/Mem.h"
-
-#if (defined(__AES__) && (__AES__ == 1)) || (defined(__ARM_FEATURE_CRYPTO) && (__ARM_FEATURE_CRYPTO == 1))
-#define SOFT_AES false
+#define FN(algo)  xmrig::CnHash::fn(xmrig::Algorithm::algo, SOFT_AES ? xmrig::CnHash::AV_SINGLE_SOFT : xmrig::CnHash::AV_SINGLE, xmrig::Assembly::NONE)
+#if defined(ASM_TYPE)
+  #define FNA(algo) xmrig::CnHash::fn(xmrig::Algorithm::algo, SOFT_AES ? xmrig::CnHash::AV_SINGLE_SOFT : xmrig::CnHash::AV_SINGLE, ASM_TYPE)
 #else
-// #warning Using software AES
-#define SOFT_AES true
+  #define FNA(algo) xmrig::CnHash::fn(xmrig::Algorithm::algo, SOFT_AES ? xmrig::CnHash::AV_SINGLE_SOFT : xmrig::CnHash::AV_SINGLE, xmrig::Assembly::NONE)
 #endif
 
 #ifdef _WIN32
@@ -41,207 +64,257 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define MODULE_API
 #endif
 
-#define STRINGISE_IMPL(x) #x
-#define STRINGISE(x) STRINGISE_IMPL(x)
+const size_t max_mem_size = 4 * 1024 * 1024;
 
-extern "C" MODULE_API cryptonight_ctx *cryptonight_alloc_context_export() {
+static xmrig::cn_hash_fun get_cn_fn(const int algo) {
+  switch (algo) {
+    case 0:  return FN(CN_0);
+    case 1:  return FN(CN_1);
+    case 4:  return FN(CN_FAST);
+    case 6:  return FN(CN_XAO);
+    case 7:  return FN(CN_RTO);
+    case 8:  return FNA(CN_2);
+    case 9:  return FNA(CN_HALF);
+    case 11: return FN(CN_GPU);
+    case 13: return FNA(CN_R);
+    case 14: return FNA(CN_RWZ);
+    case 15: return FNA(CN_ZLS);
+    case 16: return FNA(CN_DOUBLE);
+    default: return FN(CN_1);
+  }
+}
+
+class CryptonightContextWrapper
+{
+public:
+    CryptonightContextWrapper(xmrig::VirtualMemory *mem, cryptonight_ctx *ctx)
+    {
+        this->ctx = ctx;
+        this->mem = mem;
+    }
+
+    ~CryptonightContextWrapper()
+    {
+        if(ctx)
+            xmrig::CnCtx::release(&ctx, 1);
+
+        delete mem;
+    }
+
+    xmrig::VirtualMemory *mem;
+    cryptonight_ctx *ctx;
+};
+
+static xmrig::cn_hash_fun get_cn_lite_fn(const int algo) {
+  switch (algo) {
+    case 0:  return FN(CN_LITE_0);
+    case 1:  return FN(CN_LITE_1);
+    default: return FN(CN_LITE_1);
+  }
+}
+
+static xmrig::cn_hash_fun get_cn_heavy_fn(const int algo) {
+  switch (algo) {
+    case 0:  return FN(CN_HEAVY_0);
+    case 1:  return FN(CN_HEAVY_XHV);
+    case 2:  return FN(CN_HEAVY_TUBE);
+    default: return FN(CN_HEAVY_0);
+  }
+}
+
+static xmrig::cn_hash_fun get_cn_pico_fn(const int algo) {
+  switch (algo) {
+    case 0:  return FNA(CN_PICO_0);
+    default: return FNA(CN_PICO_0);
+  }
+}
+static xmrig::cn_hash_fun get_argon2_fn(const int algo) {
+  switch (algo) {
+    case 0:  return FN(AR2_CHUKWA);
+    case 1:  return FN(AR2_WRKZ);
+    default: return FN(AR2_CHUKWA);
+  }
+}
+
+extern "C" MODULE_API CryptonightContextWrapper *cryptonight_alloc_context_export() {
     cryptonight_ctx *ctx = NULL;
-	Mem::create(&ctx, xmrig::CRYPTONIGHT, 1);
+    auto mem = new xmrig::VirtualMemory(max_mem_size, true, false, 0, 4096);
+    xmrig::CnCtx::create(&ctx, mem->scratchpad(), max_mem_size, 1);
 
-    return ctx;
+    auto wrapper = new CryptonightContextWrapper(mem, ctx);
+    return wrapper;
 }
 
-extern "C" MODULE_API cryptonight_ctx *cryptonight_alloc_lite_context_export() {
-	cryptonight_ctx *ctx = NULL;
-	Mem::create(&ctx, xmrig::CRYPTONIGHT_LITE, 1);
-
-    return ctx;
+extern "C" MODULE_API CryptonightContextWrapper *cryptonight_alloc_lite_context_export() {
+    return cryptonight_alloc_context_export();
 }
 
-extern "C" MODULE_API cryptonight_ctx *cryptonight_alloc_heavy_context_export() {
-	cryptonight_ctx *ctx = NULL;
-	Mem::create(&ctx, xmrig::CRYPTONIGHT_HEAVY, 1);
-
-    return ctx;
+extern "C" MODULE_API CryptonightContextWrapper *cryptonight_alloc_heavy_context_export() {
+    return cryptonight_alloc_context_export();
 }
 
-extern "C" MODULE_API cryptonight_ctx *cryptonight_alloc_pico_context_export() {
-	cryptonight_ctx *ctx = NULL;
-	Mem::create(&ctx, xmrig::CRYPTONIGHT_PICO, 1);
-
-	return ctx;
+extern "C" MODULE_API CryptonightContextWrapper *cryptonight_alloc_pico_context_export() {
+    return cryptonight_alloc_context_export();
 }
 
-extern "C" MODULE_API void cryptonight_free_ctx_export(cryptonight_ctx *ctx) {
-	MemInfo mi;
-	Mem::release(&ctx, 1, mi);
+extern "C" MODULE_API void cryptonight_free_ctx_export(CryptonightContextWrapper *wrapper) {
+	delete wrapper;
 }
 
-extern "C" MODULE_API void cryptonight_export(cryptonight_ctx* ctx, const char* input, unsigned char *output, size_t inputSize, uint32_t variant, uint64_t height)
+extern "C" MODULE_API void cryptonight_export(CryptonightContextWrapper* wrapper, const char* input, unsigned char *output, size_t inputSize, uint32_t variant, uint64_t height)
 {
+    auto ctx = wrapper->ctx;
+    const xmrig::cn_hash_fun fn = get_cn_fn(variant);
+
+    fn(reinterpret_cast<const uint8_t*>(input), inputSize, reinterpret_cast<uint8_t*>(output), &ctx, height);
+}
+
+extern "C" MODULE_API void cryptonight_light_export(CryptonightContextWrapper* wrapper, const char* input, unsigned char *output, size_t inputSize, uint32_t variant, uint64_t height)
+{
+    auto ctx = wrapper->ctx;
+    const xmrig::cn_hash_fun fn = get_cn_lite_fn(variant);
+
+    fn(reinterpret_cast<const uint8_t*>(input), inputSize, reinterpret_cast<uint8_t*>(output), &ctx, height);
+}
+
+extern "C" MODULE_API void cryptonight_heavy_export(CryptonightContextWrapper* wrapper, const char* input, unsigned char *output, size_t inputSize, uint32_t variant, uint64_t height)
+{
+    auto ctx = wrapper->ctx;
+    const xmrig::cn_hash_fun fn = get_cn_heavy_fn(variant);
+
+    fn(reinterpret_cast<const uint8_t*>(input), inputSize, reinterpret_cast<uint8_t*>(output), &ctx, height);
+}
+
+extern "C" MODULE_API void cryptonight_pico_export(CryptonightContextWrapper* wrapper, const char* input, unsigned char *output, size_t inputSize, uint32_t variant, uint64_t height)
+{
+    auto ctx = wrapper->ctx;
+    const xmrig::cn_hash_fun fn = get_cn_pico_fn(variant);
+
+    fn(reinterpret_cast<const uint8_t*>(input), inputSize, reinterpret_cast<uint8_t*>(output), &ctx, height);
+}
+
+class RandomXVmWrapper
+{
+public:
+    RandomXVmWrapper(xmrig::VirtualMemory *mem, randomx_vm *vm)
+    {
+        this->vm = vm;
+        this->mem = mem;
+    }
+
+    ~RandomXVmWrapper()
+    {
+        if(vm)
+            randomx_destroy_vm(vm);
+
+        delete mem;
+    }
+
+    xmrig::VirtualMemory *mem;
+    randomx_vm *vm;
+};
+
+class RandomXCacheWrapper
+{
+public:
+    RandomXCacheWrapper(randomx_cache *cache, void *seedHash)
+    {
+        this->cache = cache;
+        this->seedHash = seedHash;
+    }
+
+    ~RandomXCacheWrapper()
+    {
+        if(cache)
+            randomx_release_cache(cache);
+
+        if(seedHash)
+            free(seedHash);
+    }
+
+    void *seedHash;
+    randomx_cache *cache;
+};
+
+extern "C" MODULE_API RandomXCacheWrapper *randomx_create_cache_export(int variant, const char* seedHash, size_t seedHashSize)
+{
+    // Copy seed
+    auto seedHashCopy = malloc(seedHashSize);
+    memcpy(seedHashCopy, seedHash, seedHashSize);
+
+    // Alloc cache
+    auto cache = randomx_alloc_cache(static_cast<randomx_flags>(RANDOMX_FLAG_JIT | RANDOMX_FLAG_LARGE_PAGES));
+
+    if (!cache)
+        cache = randomx_alloc_cache(static_cast<randomx_flags>(RANDOMX_FLAG_JIT));
+
     switch (variant) {
-	case 0:  cryptonight_single_hash<xmrig::CRYPTONIGHT, SOFT_AES, xmrig::VARIANT_0>(reinterpret_cast<const uint8_t*>(input), inputSize, reinterpret_cast<uint8_t*>(output), &ctx, height);
-		break;
-	case 1:  cryptonight_single_hash<xmrig::CRYPTONIGHT, SOFT_AES, xmrig::VARIANT_1>(reinterpret_cast<const uint8_t*>(input), inputSize, reinterpret_cast<uint8_t*>(output), &ctx, height);
-		break;
-	case 3:  cryptonight_single_hash<xmrig::CRYPTONIGHT, SOFT_AES, xmrig::VARIANT_XTL>(reinterpret_cast<const uint8_t*>(input), inputSize, reinterpret_cast<uint8_t*>(output), &ctx, height);
-		break;
-	case 4:  cryptonight_single_hash<xmrig::CRYPTONIGHT, SOFT_AES, xmrig::VARIANT_MSR>(reinterpret_cast<const uint8_t*>(input), inputSize, reinterpret_cast<uint8_t*>(output), &ctx, height);
-		break;
-	case 6:  cryptonight_single_hash<xmrig::CRYPTONIGHT, SOFT_AES, xmrig::VARIANT_XAO>(reinterpret_cast<const uint8_t*>(input), inputSize, reinterpret_cast<uint8_t*>(output), &ctx, height);
-		break;
-	case 7:  cryptonight_single_hash<xmrig::CRYPTONIGHT, SOFT_AES, xmrig::VARIANT_RTO>(reinterpret_cast<const uint8_t*>(input), inputSize, reinterpret_cast<uint8_t*>(output), &ctx, height);
-		break;
+        case 0:
+            randomx_apply_config(RandomX_MoneroConfig);
+            break;
+        case 1:
+            randomx_apply_config(RandomX_ScalaConfig);
+            break;
+        case 2:
+            randomx_apply_config(RandomX_ArqmaConfig);
+            break;
+        case 17:
+            randomx_apply_config(RandomX_WowneroConfig);
+            break;
+        case 18:
+            randomx_apply_config(RandomX_LokiConfig);
+            break;
+        default:
+            throw std::domain_error("Unknown RandomX algo");
+    }
 
-	case 8:
-#if !SOFT_AES && defined(CPU_INTEL)
-		// #warning Using IvyBridge assembler implementation
-			cryptonight_single_hash_asm<xmrig::CRYPTONIGHT, xmrig::VARIANT_2, xmrig::ASM_INTEL>(reinterpret_cast<const uint8_t*>(input), inputSize, reinterpret_cast<uint8_t*>(output), &ctx, height);
-#elif !SOFT_AES && defined(CPU_AMD)
-		// #warning Using Ryzen assembler implementation
-			cryptonight_single_hash_asm<xmrig::CRYPTONIGHT, xmrig::VARIANT_2, xmrig::ASM_RYZEN>(reinterpret_cast<const uint8_t*>(input), inputSize, reinterpret_cast<uint8_t*>(output), &ctx, height);
-#elif !SOFT_AES && defined(CPU_AMD_OLD)
-		// #warning Using Bulldozer assembler implementation
-			cryptonight_single_hash_asm<xmrig::CRYPTONIGHT, xmrig::VARIANT_2, xmrig::ASM_BULLDOZER>(reinterpret_cast<const uint8_t*>(input), inputSize, reinterpret_cast<uint8_t*>(output), &ctx, height);
-#else
-		cryptonight_single_hash    <xmrig::CRYPTONIGHT, SOFT_AES, xmrig::VARIANT_2>(reinterpret_cast<const uint8_t*>(input), inputSize, reinterpret_cast<uint8_t*>(output), &ctx, height);
-#endif
-		break;
+    // Init cache
+    randomx_init_cache(cache, seedHashCopy, seedHashSize);
 
-	case 9:
-#if !SOFT_AES && defined(CPU_INTEL)
-		// #warning Using IvyBridge assembler implementation
-			cryptonight_single_hash_asm<xmrig::CRYPTONIGHT, xmrig::VARIANT_HALF, xmrig::ASM_INTEL>(reinterpret_cast<const uint8_t*>(input), inputSize, reinterpret_cast<uint8_t*>(output), &ctx, height);
-#elif !SOFT_AES && defined(CPU_AMD)
-		// #warning Using Ryzen assembler implementation
-			cryptonight_single_hash_asm<xmrig::CRYPTONIGHT, xmrig::VARIANT_HALF, xmrig::ASM_RYZEN>(reinterpret_cast<const uint8_t*>(input), inputSize, reinterpret_cast<uint8_t*>(output), &ctx, height);
-#elif !SOFT_AES && defined(CPU_AMD_OLD)
-		// #warning Using Bulldozer assembler implementation
-			cryptonight_single_hash_asm<xmrig::CRYPTONIGHT, xmrig::VARIANT_HALF, xmrig::ASM_BULLDOZER>(reinterpret_cast<const uint8_t*>(input), inputSize, reinterpret_cast<uint8_t*>(output), &ctx, height);
-#else
-		cryptonight_single_hash    <xmrig::CRYPTONIGHT, SOFT_AES, xmrig::VARIANT_HALF>(reinterpret_cast<const uint8_t*>(input), inputSize, reinterpret_cast<uint8_t*>(output), &ctx, height);
-#endif
-		break;
-	case 11: cryptonight_single_hash_gpu<xmrig::CRYPTONIGHT, SOFT_AES, xmrig::VARIANT_GPU>(reinterpret_cast<const uint8_t*>(input), inputSize, reinterpret_cast<uint8_t*>(output), &ctx, height);
-		break;
-	case 12:
-		//if (!height_set) return THROW_ERROR_EXCEPTION("CryptonightR requires block template height as Argument 3");
-
-#if !SOFT_AES && (defined(CPU_INTEL) || defined(CPU_AMD))
-		cryptonight_single_hash_asm<xmrig::CRYPTONIGHT, xmrig::VARIANT_WOW, xmrig::ASM_AUTO>(reinterpret_cast<const uint8_t*>(input), inputSize, reinterpret_cast<uint8_t*>(output), &ctx, height);
-#else
-		cryptonight_single_hash    <xmrig::CRYPTONIGHT, SOFT_AES, xmrig::VARIANT_WOW>(reinterpret_cast<const uint8_t*>(input), inputSize, reinterpret_cast<uint8_t*>(output), &ctx, height);
-#endif
-		break;
-	case 13:
-		//if (!height_set) return THROW_ERROR_EXCEPTION("Cryptonight4 requires block template height as Argument 3");
-
-#if !SOFT_AES && defined(CPU_INTEL)
-		// #warning Using IvyBridge assembler implementation
-			cryptonight_single_hash_asm<xmrig::CRYPTONIGHT, xmrig::VARIANT_4, xmrig::ASM_INTEL>(reinterpret_cast<const uint8_t*>(input), inputSize, reinterpret_cast<uint8_t*>(output), &ctx, height);
-#elif !SOFT_AES && defined(CPU_AMD)
-		// #warning Using Ryzen assembler implementation
-			cryptonight_single_hash_asm<xmrig::CRYPTONIGHT, xmrig::VARIANT_4, xmrig::ASM_RYZEN>(reinterpret_cast<const uint8_t*>(input), inputSize, reinterpret_cast<uint8_t*>(output), &ctx, height);
-#elif !SOFT_AES && defined(CPU_AMD_OLD)
-		// #warning Using Bulldozer assembler implementation
-			cryptonight_single_hash_asm<xmrig::CRYPTONIGHT, xmrig::VARIANT_4, xmrig::ASM_BULLDOZER>(reinterpret_cast<const uint8_t*>(input), inputSize, reinterpret_cast<uint8_t*>(output), &ctx, height);
-#else
-		cryptonight_single_hash    <xmrig::CRYPTONIGHT, SOFT_AES, xmrig::VARIANT_4>(reinterpret_cast<const uint8_t*>(input), inputSize, reinterpret_cast<uint8_t*>(output), &ctx, height);
-#endif
-		break;
-
-	case 14:
-		cryptonight_single_hash<xmrig::CRYPTONIGHT, SOFT_AES, xmrig::VARIANT_RWZ>(reinterpret_cast<const uint8_t*>(input), inputSize, reinterpret_cast<uint8_t*>(output), &ctx, height);
-		break;
-
-	case 15:
-#if !SOFT_AES && defined(CPU_INTEL)
-		// #warning Using IvyBridge assembler implementation
-			cryptonight_single_hash_asm<xmrig::CRYPTONIGHT, xmrig::VARIANT_ZLS, xmrig::ASM_INTEL>(reinterpret_cast<const uint8_t*>(input), inputSize, reinterpret_cast<uint8_t*>(output), &ctx, height);
-#elif !SOFT_AES && defined(CPU_AMD)
-		// #warning Using Ryzen assembler implementation
-			cryptonight_single_hash_asm<xmrig::CRYPTONIGHT, xmrig::VARIANT_ZLS, xmrig::ASM_RYZEN>(reinterpret_cast<const uint8_t*>(input), inputSize, reinterpret_cast<uint8_t*>(output), &ctx, height);
-#elif !SOFT_AES && defined(CPU_AMD_OLD)
-		// #warning Using Bulldozer assembler implementation
-			cryptonight_single_hash_asm<xmrig::CRYPTONIGHT, xmrig::VARIANT_ZLS, xmrig::ASM_BULLDOZER>(reinterpret_cast<const uint8_t*>(input), inputSize, reinterpret_cast<uint8_t*>(output), &ctx, height);
-#else
-		cryptonight_single_hash    <xmrig::CRYPTONIGHT, SOFT_AES, xmrig::VARIANT_ZLS>(reinterpret_cast<const uint8_t*>(input), inputSize, reinterpret_cast<uint8_t*>(output), &ctx, height);
-#endif
-		break;
-
-	case 16:
-#if !SOFT_AES && defined(CPU_INTEL)
-		// #warning Using IvyBridge assembler implementation
-			cryptonight_single_hash_asm<xmrig::CRYPTONIGHT, xmrig::VARIANT_DOUBLE, xmrig::ASM_INTEL>(reinterpret_cast<const uint8_t*>(input), inputSize, reinterpret_cast<uint8_t*>(output), &ctx, height);
-#elif !SOFT_AES && defined(CPU_AMD)
-		// #warning Using Ryzen assembler implementation
-			cryptonight_single_hash_asm<xmrig::CRYPTONIGHT, xmrig::VARIANT_DOUBLE, xmrig::ASM_RYZEN>(reinterpret_cast<const uint8_t*>(input), inputSize, reinterpret_cast<uint8_t*>(output), &ctx, height);
-#elif !SOFT_AES && defined(CPU_AMD_OLD)
-		// #warning Using Bulldozer assembler implementation
-			cryptonight_single_hash_asm<xmrig::CRYPTONIGHT, xmrig::VARIANT_DOUBLE, xmrig::ASM_BULLDOZER>(reinterpret_cast<const uint8_t*>(input), inputSize, reinterpret_cast<uint8_t*>(output), &ctx, height);
-#else
-		cryptonight_single_hash    <xmrig::CRYPTONIGHT, SOFT_AES, xmrig::VARIANT_DOUBLE>(reinterpret_cast<const uint8_t*>(input), inputSize, reinterpret_cast<uint8_t*>(output), &ctx, height);
-#endif
-		break;
-
-	default: cryptonight_single_hash<xmrig::CRYPTONIGHT, SOFT_AES, xmrig::VARIANT_1>(reinterpret_cast<const uint8_t*>(input), inputSize, reinterpret_cast<uint8_t*>(output), &ctx, height);
-	}
+    // Wrap it
+    auto wrapper = new RandomXCacheWrapper(cache, seedHashCopy);
+    return wrapper;
 }
 
-extern "C" MODULE_API void cryptonight_light_export(cryptonight_ctx* ctx, const char* input, unsigned char *output, size_t inputSize, uint32_t variant, uint64_t height)
+extern "C" MODULE_API void randomx_free_cache_export(RandomXCacheWrapper *wrapper)
 {
+    delete wrapper;
+}
+
+extern "C" MODULE_API RandomXVmWrapper *randomx_create_vm_export(randomx_cache *cache)
+{
+    int flags = RANDOMX_FLAG_LARGE_PAGES | RANDOMX_FLAG_JIT;
+
+    auto mem = new xmrig::VirtualMemory(max_mem_size, false, false, 0, 4096);
+    auto vm = randomx_create_vm(static_cast<randomx_flags>(flags), cache, nullptr, mem->scratchpad());
+
+    if (!vm)
+        vm = randomx_create_vm(static_cast<randomx_flags>(flags - RANDOMX_FLAG_LARGE_PAGES), cache, nullptr, mem->scratchpad());
+
+    if (!vm)
+        return nullptr;
+
+    auto wrapper = new RandomXVmWrapper(mem, vm);
+    return wrapper;
+}
+
+extern "C" MODULE_API void randomx_free_vm_export(RandomXVmWrapper *wrapper)
+{
+    delete wrapper;
+}
+
+extern "C" MODULE_API void randomx_set_vm_cache_export(RandomXVmWrapper *wrapper, RandomXCacheWrapper *cacheWrapper)
+{
+    randomx_vm_set_cache(wrapper->vm, cacheWrapper->cache);
+}
+
+extern "C" MODULE_API void randomx_export(RandomXVmWrapper* wrapper, const char* input, unsigned char *output, size_t inputSize, uint32_t variant, uint64_t height)
+{
+    auto vm = wrapper->vm;
+
     switch (variant) {
-	case 0:  
-		cryptonight_single_hash<xmrig::CRYPTONIGHT_LITE, SOFT_AES, xmrig::VARIANT_0>(reinterpret_cast<const uint8_t*>(input), inputSize, reinterpret_cast<uint8_t*>(output), &ctx, height);
-		break;
-	case 1:  
-		cryptonight_single_hash<xmrig::CRYPTONIGHT_LITE, SOFT_AES, xmrig::VARIANT_1>(reinterpret_cast<const uint8_t*>(input), inputSize, reinterpret_cast<uint8_t*>(output), &ctx, height);
-		break;
-	default: 
-		cryptonight_single_hash<xmrig::CRYPTONIGHT_LITE, SOFT_AES, xmrig::VARIANT_1>(reinterpret_cast<const uint8_t*>(input), inputSize, reinterpret_cast<uint8_t*>(output), &ctx, height);
-	}
-}
-
-extern "C" MODULE_API void cryptonight_heavy_export(cryptonight_ctx* ctx, const char* input, unsigned char *output, size_t inputSize, uint32_t variant, uint64_t height)
-{
-    switch (variant) {
-	case 0:  
-		cryptonight_single_hash<xmrig::CRYPTONIGHT_HEAVY, SOFT_AES, xmrig::VARIANT_0   >(reinterpret_cast<const uint8_t*>(input), inputSize, reinterpret_cast<uint8_t*>(output), &ctx, height);
-		break;
-	case 1:  
-		cryptonight_single_hash<xmrig::CRYPTONIGHT_HEAVY, SOFT_AES, xmrig::VARIANT_XHV >(reinterpret_cast<const uint8_t*>(input), inputSize, reinterpret_cast<uint8_t*>(output), &ctx, height);
-		break;
-	case 2:  
-		cryptonight_single_hash<xmrig::CRYPTONIGHT_HEAVY, SOFT_AES, xmrig::VARIANT_TUBE>(reinterpret_cast<const uint8_t*>(input), inputSize, reinterpret_cast<uint8_t*>(output), &ctx, height);
-		break;
-	default: 
-		cryptonight_single_hash<xmrig::CRYPTONIGHT_HEAVY, SOFT_AES, xmrig::VARIANT_0   >(reinterpret_cast<const uint8_t*>(input), inputSize, reinterpret_cast<uint8_t*>(output), &ctx, height);
-	}
-}
-
-extern "C" MODULE_API void cryptonight_pico_export(cryptonight_ctx* ctx, const char* input, unsigned char *output, size_t inputSize, uint32_t variant, uint64_t height)
-{
-	switch (variant) {
-	case 0:
-#if !SOFT_AES && defined(CPU_INTEL)
-		cryptonight_single_hash_asm<xmrig::CRYPTONIGHT_PICO, xmrig::VARIANT_TRTL, xmrig::ASM_INTEL>(reinterpret_cast<const uint8_t*>(input), inputSize, reinterpret_cast<uint8_t*>(output), &ctx, 0);
-#elif !SOFT_AES && defined(CPU_AMD)
-		cryptonight_single_hash_asm<xmrig::CRYPTONIGHT_PICO, xmrig::VARIANT_TRTL, xmrig::ASM_RYZEN>(reinterpret_cast<const uint8_t*>(input), inputSize, reinterpret_cast<uint8_t*>(output), &ctx, 0);
-#elif !SOFT_AES && defined(CPU_AMD_OLD)
-		cryptonight_single_hash_asm<xmrig::CRYPTONIGHT_PICO, xmrig::VARIANT_TRTL, xmrig::ASM_BULLDOZER>(reinterpret_cast<const uint8_t*>(input), inputSize, reinterpret_cast<uint8_t*>(output), &ctx, 0);
-#else
-		cryptonight_single_hash    <xmrig::CRYPTONIGHT_PICO, SOFT_AES, xmrig::VARIANT_TRTL>(reinterpret_cast<const uint8_t*>(input), inputSize, reinterpret_cast<uint8_t*>(output), &ctx, 0);
-#endif
-		break;
-	default:
-#if !SOFT_AES && defined(CPU_INTEL)
-		cryptonight_single_hash_asm<xmrig::CRYPTONIGHT_PICO, xmrig::VARIANT_TRTL, xmrig::ASM_INTEL>(reinterpret_cast<const uint8_t*>(input), inputSize, reinterpret_cast<uint8_t*>(output), &ctx, 0);
-#elif !SOFT_AES && defined(CPU_AMD)
-		cryptonight_single_hash_asm<xmrig::CRYPTONIGHT_PICO, xmrig::VARIANT_TRTL, xmrig::ASM_RYZEN>(reinterpret_cast<const uint8_t*>(input), inputSize, reinterpret_cast<uint8_t*>(output), &ctx, 0);
-#elif !SOFT_AES && defined(CPU_AMD_OLD)
-		cryptonight_single_hash_asm<xmrig::CRYPTONIGHT_PICO, xmrig::VARIANT_TRTL, xmrig::ASM_BULLDOZER>(reinterpret_cast<const uint8_t*>(input), inputSize, reinterpret_cast<uint8_t*>(output), &ctx, 0);
-#else
-		cryptonight_single_hash    <xmrig::CRYPTONIGHT_PICO, SOFT_AES, xmrig::VARIANT_TRTL>(reinterpret_cast<const uint8_t*>(input), inputSize, reinterpret_cast<uint8_t*>(output), &ctx, 0);
-#endif
-	}
+      case 1:  defyx_calculate_hash  (vm, reinterpret_cast<const uint8_t*>(input), inputSize, reinterpret_cast<uint8_t*>(output));
+               break;
+      default: randomx_calculate_hash(vm, reinterpret_cast<const uint8_t*>(input), inputSize, reinterpret_cast<uint8_t*>(output));
+    }
 }
