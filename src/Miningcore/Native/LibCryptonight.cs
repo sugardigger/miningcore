@@ -281,11 +281,14 @@ namespace Miningcore.Native
                     // Housekeeping
                     while(randomxVmCacheCache.Count + 1 > 8)
                     {
+                        Console.WriteLine("randomxVmCacheCache");
+
                         var key = randomxVmCacheCache.Keys.First(x => x != seedHash);
+
                         var old = randomxVmCacheCache[key];
 
-                        randomx_free_cache(old);
-                        randomxVmCacheCache.Remove(key);
+                        //randomx_free_cache(old);
+                        //randomxVmCacheCache.Remove(old);
                     }
 
                     var seedBytes = Encoding.UTF8.GetBytes(seedHash);
@@ -293,6 +296,7 @@ namespace Miningcore.Native
                     // Create new VM
                     fixed(byte* seedBytesPtr = seedBytes)
                     {
+                        Console.WriteLine("randomx_create_cache");
                         cache = randomx_create_cache((int) variant, seedBytesPtr, (uint) seedBytes.Length);
                     }
 
@@ -300,9 +304,16 @@ namespace Miningcore.Native
                 }
 
                 if(randomxVm == IntPtr.Zero)
+                {
+                    Console.WriteLine("randomx_create_cache");
                     randomxVm = randomx_create_vm(cache);
+                }
                 else
+                {
+                    Console.WriteLine("randomx_create_cache");
                     randomx_set_vm_cache(randomxVm, cache);
+                }
+                    
 
                 fixed(byte* input = data)
                 {
