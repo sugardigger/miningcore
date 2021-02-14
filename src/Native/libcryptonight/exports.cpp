@@ -100,7 +100,7 @@ public:
 
 
 // void init_rx(const uint8_t* seed_hash_data, xmrig::Algorithm::Id algo)
-extern "C" MODULE_API RandomXCacheWrapper *randomx_create_cache_export(int variant, const char* seedHash, uint32_t seedHashSize)
+extern "C" MODULE_API RandomXCacheWrapper *randomx_create_cache_export(int variant, const char* seedHash, uint8_t seedHashSize)
 {
     
     // Alloc rx_cache[variant]
