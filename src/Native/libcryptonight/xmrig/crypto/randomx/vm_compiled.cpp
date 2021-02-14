@@ -28,28 +28,34 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "crypto/randomx/vm_compiled.hpp"
 #include "crypto/randomx/common.hpp"
+#include "base/tools/Profiler.h"
 
 namespace randomx {
 
 	static_assert(sizeof(MemoryRegisters) == 2 * sizeof(addr_t) + sizeof(uintptr_t), "Invalid alignment of struct randomx::MemoryRegisters");
 	static_assert(sizeof(RegisterFile) == 256, "Invalid alignment of struct randomx::RegisterFile");
 
-	template<bool softAes>
+	template<int softAes>
 	void CompiledVm<softAes>::setDataset(randomx_dataset* dataset) {
 		datasetPtr = dataset;
 	}
 
-	template<bool softAes>
+	template<int softAes>
 	void CompiledVm<softAes>::run(void* seed) {
+		PROFILE_SCOPE(RandomX_run);
+
+		compiler.prepare();
 		VmBase<softAes>::generateProgram(seed);
 		randomx_vm::initialize();
-		compiler.generateProgram(program, config);
+		compiler.generateProgram(program, config, randomx_vm::getFlags());
 		mem.memory = datasetPtr->memory + datasetOffset;
 		execute();
 	}
 
-	template<bool softAes>
+	template<int softAes>
 	void CompiledVm<softAes>::execute() {
+		PROFILE_SCOPE(RandomX_JIT_execute);
+
 #ifdef XMRIG_ARM
 		memcpy(reg.f, config.eMask, sizeof(config.eMask));
 #endif

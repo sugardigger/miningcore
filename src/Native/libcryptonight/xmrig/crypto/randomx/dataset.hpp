@@ -38,14 +38,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 /* Global scope for C binding */
 struct randomx_dataset {
 	uint8_t* memory = nullptr;
-	randomx::DatasetDeallocFunc* dealloc;
 };
 
 /* Global scope for C binding */
 struct randomx_cache {
 	uint8_t* memory = nullptr;
-	randomx::CacheDeallocFunc* dealloc;
-	randomx::JitCompiler* jit;
+	randomx::JitCompiler* jit = nullptr;
 	randomx::CacheInitializeFunc* initialize;
 	randomx::DatasetInitFunc* datasetInit;
 	randomx::SuperscalarProgram programs[RANDOMX_CACHE_MAX_ACCESSES];

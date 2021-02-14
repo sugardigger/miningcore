@@ -41,14 +41,17 @@ constexpr size_t pageSize = 2 * 1024 * 1024;
 } // namespace xmrig
 
 
-xmrig::MemoryPool::MemoryPool(size_t size, bool hugePages, uint32_t node) :
-    m_size(size)
+xmrig::MemoryPool::MemoryPool(size_t size, bool hugePages, uint32_t node)
 {
     if (!size) {
         return;
     }
 
-    m_memory = new VirtualMemory(size * pageSize, hugePages, false, node);
+    constexpr size_t alignment = 0; //1 << 24;
+
+    m_memory = new VirtualMemory(size * pageSize + alignment, hugePages, false, false, node);
+
+    //m_alignOffset = (alignment - (((size_t)m_memory->scratchpad()) % alignment)) % alignment;
 }
 
 
@@ -72,7 +75,7 @@ uint8_t *xmrig::MemoryPool::get(size_t size, uint32_t)
         return nullptr;
     }
 
-    uint8_t *out = m_memory->scratchpad() + m_offset;
+    uint8_t *out = m_memory->scratchpad() + m_alignOffset + m_offset;
 
     m_offset += size;
     ++m_refs;

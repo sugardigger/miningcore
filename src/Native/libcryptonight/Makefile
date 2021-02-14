@@ -11,12 +11,23 @@ TARGET  = libcryptonight.so
 OBJECTS =	xmrig/crypto/cn/asm/cn_main_loop.o \
 			xmrig/crypto/cn/asm/CryptonightR_template.o \
 			xmrig/crypto/cn/r/CryptonightR_gen.o \
+			xmrig/crypto/cn/gpu/cn_gpu_avx.o \
+			xmrig/crypto/cn/gpu/cn_gpu_ssse3.o \
+			xmrig-override/backend/cpu/platform/BasicCpuInfo.o \
+			 \
+			xmrig-override/backend/cpu/Cpu.o \
+			 \
+			c29b.o \
+            c29i.o \
+            c29s.o \
+            c29v.o \
 			xmrig/crypto/cn/c_blake256.o \
 			xmrig/crypto/cn/c_groestl.o \
 			xmrig/crypto/cn/c_jh.o \
 			xmrig/crypto/cn/c_skein.o \
-			xmrig/crypto/common/keccak.o \
-			xmrig-override/crypto/common/Algorithm.o \
+			xmrig/base/crypto/keccak.o \
+			xmrig/base/crypto/sha3 \
+			xmrig-override/base/crypto/Algorithm.o \
 			xmrig/crypto/cn/CnCtx.o \
 			xmrig/crypto/cn/CnHash.o \
 			xmrig/crypto/common/MemoryPool.o \
@@ -24,7 +35,6 @@ OBJECTS =	xmrig/crypto/cn/asm/cn_main_loop.o \
 			xmrig/crypto/common/VirtualMemory_unix.o \
 			 \
 			xmrig/crypto/randomx/aes_hash.o \
-			xmrig/crypto/randomx/argon2_ref.o \
 			xmrig/crypto/randomx/bytecode_machine.o \
 			xmrig/crypto/randomx/dataset.o \
 			xmrig/crypto/randomx/soft_aes.o \
@@ -35,7 +45,6 @@ OBJECTS =	xmrig/crypto/cn/asm/cn_main_loop.o \
 			xmrig/crypto/randomx/superscalar.o \
 			xmrig/crypto/randomx/vm_compiled.o \
 			xmrig/crypto/randomx/vm_interpreted_light.o \
-			xmrig/crypto/randomx/argon2_core.o \
 			xmrig/crypto/randomx/blake2_generator.o \
 			xmrig/crypto/randomx/instructions_portable.o \
 			xmrig/crypto/randomx/reciprocal.o \
@@ -59,12 +68,21 @@ OBJECTS =	xmrig/crypto/cn/asm/cn_main_loop.o \
 			xmrig/3rdparty/argon2/arch/x86_64/lib/argon2-xop.o \
 			xmrig/3rdparty/argon2/arch/x86_64/lib/cpu-flags.o \
 			 \
-			xmrig/crypto/defyx/defyx.o \
-			xmrig/crypto/defyx/KangarooTwelve.o \
-			xmrig/crypto/defyx/KeccakP-1600-reference.o \
-			xmrig/crypto/defyx/KeccakSpongeWidth1600.o \
-			xmrig/crypto/defyx/yescrypt-best.o \
-			xmrig/crypto/defyx/sha256.o \
+			xmrig/crypto/astrobwt/AstroBWT.o \
+            xmrig/crypto/astrobwt/Salsa20.o \
+            xmrig/crypto/astrobwt/salsa20_ref/salsa20.o \
+			 \
+            xmrig/crypto/randomx/defyx/KangarooTwelve.o \
+            xmrig/crypto/randomx/defyx/KeccakP-1600-reference.o \
+            xmrig/crypto/randomx/defyx/KeccakSpongeWidth1600.o \
+            xmrig/crypto/randomx/defyx/yescrypt-best.o \
+            xmrig/crypto/randomx/panthera/sha256.o \
+            xmrig/crypto/randomx/panthera/yespower-opt.o \
+			 \
+			xmrig-override/crypto/kawpow/KPHash.o \
+			xmrig/3rdparty/libethash/keccakf800.o \
+			xmrig/3rdparty/libethash/ethash_internal.o \
+			 \
 			exports.o
 
 all: $(TARGET)

@@ -1,36 +1,31 @@
-/*
-Copyright 2017 Coin Foundry (coinfoundry.org)
-Authors: Oliver Weichhold (oliver@weichhold.com)
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
-associated documentation files (the "Software"), to deal in the Software without restriction,
-including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense,
-and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so,
-subject to the following conditions:
-The above copyright notice and this permission notice shall be included in all copies or substantial
-portions of the Software.
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT
-LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+
+
 
 #include <stdint.h>
-#include <string>
-#include <algorithm>
+#include <stdexcept>
 
-#include "crypto/cn/CryptoNight.h"
+#include <string>
+
+//#include <algorithm>
+//#include "crypto/cn/CryptoNight.h"
 
 #include "crypto/common/VirtualMemory.h"
 #include "crypto/cn/CnCtx.h" 
 #include "crypto/cn/CnHash.h"
+#include "crypto/randomx/configuration.h"
 #include "crypto/randomx/randomx.h"
-#include "crypto/defyx/defyx.h"
-#include <stdexcept>
+#include "crypto/astrobwt/AstroBWT.h"
+#include "crypto/kawpow/KPHash.h"
+#include "3rdparty/libethash/ethash.h"
 
 extern "C" {
-#include "crypto/defyx/KangarooTwelve.h"
-} 
+#include "crypto/randomx/defyx/KangarooTwelve.h"
+#include "crypto/randomx/blake2/blake2.h"
+#include "c29/portable_endian.h" // for htole32/64
+#include "c29/int-util.h"
+}
+
+#include "c29.h"
 
 #if (defined(__AES__)) || (defined(__ARM_FEATURE_CRYPTO) && (__ARM_FEATURE_CRYPTO == 1))
   #define SOFT_AES false
@@ -64,7 +59,159 @@ extern "C" {
 #define MODULE_API
 #endif
 
-const size_t max_mem_size = 4 * 1024 * 1024;
+const size_t max_mem_size = 20 * 1024 * 1024;
+xmrig::VirtualMemory mem(max_mem_size, true, false, 0, 4096);
+static struct cryptonight_ctx* ctx = nullptr;
+static randomx_cache* rx_cache[xmrig::Algorithm::Id::MAX] = {nullptr};
+static randomx_vm* rx_vm[xmrig::Algorithm::Id::MAX] = {nullptr};
+//static xmrig::Algorithm::Id rx_variant = xmrig::Algorithm::Id::MAX;
+static uint8_t rx_seed_hash[xmrig::Algorithm::Id::MAX][32] = {};
+
+
+struct InitCtx {
+    InitCtx() {
+        xmrig::CnCtx::create(&ctx, static_cast<uint8_t*>(_mm_malloc(max_mem_size, 4096)), max_mem_size, 1);
+    }
+} s;
+
+
+// variant: RandomX
+class RandomXCacheWrapper
+{
+public:
+    RandomXCacheWrapper(randomx_cache *cache, void *seedHash)
+    {
+        this->cache = cache;
+        this->seedHash = seedHash;
+    }
+
+    ~RandomXCacheWrapper()
+    {
+        if(cache)
+            randomx_release_cache(cache);
+
+        if(seedHash)
+            free(seedHash);
+    }
+
+    void *seedHash;
+    randomx_cache *cache;
+};
+
+
+// void init_rx(const uint8_t* seed_hash_data, xmrig::Algorithm::Id algo)
+extern "C" MODULE_API RandomXCacheWrapper *randomx_create_cache_export(int variant, const char* seedHash, size_t seedHashSize)
+{
+    
+    // Alloc rx_cache[variant]
+	uint8_t* const pmem = static_cast<uint8_t*>(_mm_malloc(RANDOMX_CACHE_MAX_SIZE, 4096));
+    rx_cache[variant] = randomx_create_cache(static_cast<randomx_flags>(RANDOMX_FLAG_JIT | RANDOMX_FLAG_LARGE_PAGES), pmem);
+    if (!rx_cache[variant]) {
+            rx_cache[variant] = randomx_create_cache(RANDOMX_FLAG_JIT, pmem);
+    }	
+    
+	switch (variant) {
+        case 0:
+            randomx_apply_config(RandomX_MoneroConfig);
+            break;
+        case 1:
+            randomx_apply_config(RandomX_ScalaConfig);
+            break;
+        case 2:
+            randomx_apply_config(RandomX_ArqmaConfig);
+            break;
+		case 3:
+            randomx_apply_config(RandomX_Scala2Config);
+            break;
+        case 17:
+            randomx_apply_config(RandomX_WowneroConfig);
+            break;
+		case 19:
+            randomx_apply_config(RandomX_KevaConfig);
+            break;
+        default:
+            throw std::domain_error("Unknown RandomX algo");
+    }
+	
+	 // Copy seed
+    auto seedHashCopy = malloc(seedHashSize);
+    memcpy(seedHashCopy, seedHash, seedHashSize);
+	
+    // Init cache
+    randomx_init_cache(rx_cache[variant], seedHashCopy, seedHashSize);
+
+    // Wrap it
+    auto wrapper = new RandomXCacheWrapper(rx_cache[variant], seedHashCopy);
+    return wrapper;
+}
+
+class RandomXVmWrapper
+{
+public:
+    RandomXVmWrapper(xmrig::VirtualMemory *mem, randomx_vm *vm)
+    {
+        this->vm = vm;
+        this->mem = mem;
+    }
+
+    ~RandomXVmWrapper()
+    {
+        if(vm)
+            randomx_destroy_vm(vm);
+
+        delete mem;
+    }
+
+    xmrig::VirtualMemory *mem;
+    randomx_vm *vm;
+};
+
+
+extern "C" MODULE_API void randomx_vm_set_cache_export(RandomXVmWrapper *vmWrapper, RandomXCacheWrapper *cacheWrapper)
+{
+    randomx_vm_set_cache(vmWrapper->vm, cacheWrapper->cache);
+}
+
+
+extern "C" MODULE_API RandomXVmWrapper *randomx_create_vm_export(randomx_cache *cache)
+{
+    int flags = RANDOMX_FLAG_LARGE_PAGES | RANDOMX_FLAG_JIT;
+
+    auto mem = new xmrig::VirtualMemory(max_mem_size, false, false, 0, 4096);
+    auto vm = randomx_create_vm(static_cast<randomx_flags>(flags), cache, nullptr, mem->scratchpad(), 0);
+    if (!vm) {
+        vm = randomx_create_vm(static_cast<randomx_flags>(flags - RANDOMX_FLAG_LARGE_PAGES), cache, nullptr, mem->scratchpad(), 0);
+	}
+    if (!vm) {
+        return nullptr;
+    }
+    auto wrapper = new RandomXVmWrapper(mem, vm);
+    return wrapper;
+}
+
+
+
+extern "C" MODULE_API void randomx_export(RandomXVmWrapper* wrapper, const char* input, unsigned char *output, size_t inputSize, uint32_t variant, uint64_t height)
+{
+    auto vm = wrapper->vm;
+	xmrig::Algorithm xalgo;
+    switch (variant) {
+        case 0:  xalgo = xmrig::Algorithm::RX_0; break;
+        //case 1:  xalgo = xmrig::Algorithm::RX_DEFYX; break;
+        case 2:  xalgo = xmrig::Algorithm::RX_ARQ; break;
+        case 3:  xalgo = xmrig::Algorithm::RX_XLA; break;
+        case 17: xalgo = xmrig::Algorithm::RX_WOW; break;
+        //case 18: xalgo = xmrig::Algorithm::RX_LOKI; break;
+        case 19: xalgo = xmrig::Algorithm::RX_KEVA; break;
+        default: xalgo = xmrig::Algorithm::RX_0;
+    }
+	randomx_calculate_hash(vm, reinterpret_cast<const uint8_t*>(input), inputSize, reinterpret_cast<uint8_t*>(output), xalgo);
+    
+}
+
+
+
+
 
 static xmrig::cn_hash_fun get_cn_fn(const int algo) {
   switch (algo) {
@@ -80,30 +227,10 @@ static xmrig::cn_hash_fun get_cn_fn(const int algo) {
     case 14: return FNA(CN_RWZ);
     case 15: return FNA(CN_ZLS);
     case 16: return FNA(CN_DOUBLE);
-    default: return FN(CN_1);
+    case 17: return FNA(CN_CCX);
+    default: return FN(CN_R);
   }
 }
-
-class CryptonightContextWrapper
-{
-public:
-    CryptonightContextWrapper(xmrig::VirtualMemory *mem, cryptonight_ctx *ctx)
-    {
-        this->ctx = ctx;
-        this->mem = mem;
-    }
-
-    ~CryptonightContextWrapper()
-    {
-        if(ctx)
-            xmrig::CnCtx::release(&ctx, 1);
-
-        delete mem;
-    }
-
-    xmrig::VirtualMemory *mem;
-    cryptonight_ctx *ctx;
-};
 
 static xmrig::cn_hash_fun get_cn_lite_fn(const int algo) {
   switch (algo) {
@@ -132,9 +259,39 @@ static xmrig::cn_hash_fun get_argon2_fn(const int algo) {
   switch (algo) {
     case 0:  return FN(AR2_CHUKWA);
     case 1:  return FN(AR2_WRKZ);
+    case 2:  return FN(AR2_CHUKWA_V2);
     default: return FN(AR2_CHUKWA);
   }
 }
+
+static xmrig::cn_hash_fun get_astrobwt_fn(const int algo) {
+  switch (algo) {
+    case 0:  return FN(ASTROBWT_DERO);
+    default: return FN(ASTROBWT_DERO);
+  }
+}
+
+
+class CryptonightContextWrapper
+{
+public:
+    CryptonightContextWrapper(xmrig::VirtualMemory *mem, cryptonight_ctx *ctx)
+    {
+        this->ctx = ctx;
+        this->mem = mem;
+    }
+
+    ~CryptonightContextWrapper()
+    {
+        if(ctx)
+            xmrig::CnCtx::release(&ctx, 1);
+
+        delete mem;
+    }
+
+    xmrig::VirtualMemory *mem;
+    cryptonight_ctx *ctx;
+};
 
 extern "C" MODULE_API CryptonightContextWrapper *cryptonight_alloc_context_export() {
     cryptonight_ctx *ctx = NULL;
@@ -157,10 +314,16 @@ extern "C" MODULE_API CryptonightContextWrapper *cryptonight_alloc_pico_context_
     return cryptonight_alloc_context_export();
 }
 
+
+
 extern "C" MODULE_API void cryptonight_free_ctx_export(CryptonightContextWrapper *wrapper) {
 	delete wrapper;
 }
 
+
+// --------------------------------
+// variant: cryptonight
+// --------------------------------
 extern "C" MODULE_API void cryptonight_export(CryptonightContextWrapper* wrapper, const char* input, unsigned char *output, size_t inputSize, uint32_t variant, uint64_t height)
 {
     auto ctx = wrapper->ctx;
@@ -169,6 +332,9 @@ extern "C" MODULE_API void cryptonight_export(CryptonightContextWrapper* wrapper
     fn(reinterpret_cast<const uint8_t*>(input), inputSize, reinterpret_cast<uint8_t*>(output), &ctx, height);
 }
 
+// --------------------------------
+// variant: cryptonight-light
+// --------------------------------
 extern "C" MODULE_API void cryptonight_light_export(CryptonightContextWrapper* wrapper, const char* input, unsigned char *output, size_t inputSize, uint32_t variant, uint64_t height)
 {
     auto ctx = wrapper->ctx;
@@ -177,6 +343,9 @@ extern "C" MODULE_API void cryptonight_light_export(CryptonightContextWrapper* w
     fn(reinterpret_cast<const uint8_t*>(input), inputSize, reinterpret_cast<uint8_t*>(output), &ctx, height);
 }
 
+// --------------------------------
+// variant: cryptonight-heavy
+// --------------------------------
 extern "C" MODULE_API void cryptonight_heavy_export(CryptonightContextWrapper* wrapper, const char* input, unsigned char *output, size_t inputSize, uint32_t variant, uint64_t height)
 {
     auto ctx = wrapper->ctx;
@@ -185,6 +354,9 @@ extern "C" MODULE_API void cryptonight_heavy_export(CryptonightContextWrapper* w
     fn(reinterpret_cast<const uint8_t*>(input), inputSize, reinterpret_cast<uint8_t*>(output), &ctx, height);
 }
 
+// --------------------------------
+// variant: cryptonight-pico
+// --------------------------------
 extern "C" MODULE_API void cryptonight_pico_export(CryptonightContextWrapper* wrapper, const char* input, unsigned char *output, size_t inputSize, uint32_t variant, uint64_t height)
 {
     auto ctx = wrapper->ctx;
@@ -193,128 +365,66 @@ extern "C" MODULE_API void cryptonight_pico_export(CryptonightContextWrapper* wr
     fn(reinterpret_cast<const uint8_t*>(input), inputSize, reinterpret_cast<uint8_t*>(output), &ctx, height);
 }
 
-class RandomXVmWrapper
+// --------------------------------
+// variant: argon2
+// --------------------------------
+extern "C" MODULE_API void argon2_export(CryptonightContextWrapper* wrapper, const char* input, unsigned char *output, size_t inputSize, uint32_t variant, uint64_t height)
 {
-public:
-    RandomXVmWrapper(xmrig::VirtualMemory *mem, randomx_vm *vm)
-    {
-        this->vm = vm;
-        this->mem = mem;
-    }
+    auto ctx = wrapper->ctx;
+    const xmrig::cn_hash_fun fn = get_argon2_fn(variant);
 
-    ~RandomXVmWrapper()
-    {
-        if(vm)
-            randomx_destroy_vm(vm);
-
-        delete mem;
-    }
-
-    xmrig::VirtualMemory *mem;
-    randomx_vm *vm;
-};
-
-class RandomXCacheWrapper
-{
-public:
-    RandomXCacheWrapper(randomx_cache *cache, void *seedHash)
-    {
-        this->cache = cache;
-        this->seedHash = seedHash;
-    }
-
-    ~RandomXCacheWrapper()
-    {
-        if(cache)
-            randomx_release_cache(cache);
-
-        if(seedHash)
-            free(seedHash);
-    }
-
-    void *seedHash;
-    randomx_cache *cache;
-};
-
-extern "C" MODULE_API RandomXCacheWrapper *randomx_create_cache_export(int variant, const char* seedHash, size_t seedHashSize)
-{
-    // Copy seed
-    auto seedHashCopy = malloc(seedHashSize);
-    memcpy(seedHashCopy, seedHash, seedHashSize);
-
-    // Alloc cache
-    auto cache = randomx_alloc_cache(static_cast<randomx_flags>(RANDOMX_FLAG_JIT | RANDOMX_FLAG_LARGE_PAGES));
-
-    if (!cache)
-        cache = randomx_alloc_cache(static_cast<randomx_flags>(RANDOMX_FLAG_JIT));
-
-    switch (variant) {
-        case 0:
-            randomx_apply_config(RandomX_MoneroConfig);
-            break;
-        case 1:
-            randomx_apply_config(RandomX_ScalaConfig);
-            break;
-        case 2:
-            randomx_apply_config(RandomX_ArqmaConfig);
-            break;
-        case 17:
-            randomx_apply_config(RandomX_WowneroConfig);
-            break;
-        case 18:
-            randomx_apply_config(RandomX_LokiConfig);
-            break;
-        default:
-            throw std::domain_error("Unknown RandomX algo");
-    }
-
-    // Init cache
-    randomx_init_cache(cache, seedHashCopy, seedHashSize);
-
-    // Wrap it
-    auto wrapper = new RandomXCacheWrapper(cache, seedHashCopy);
-    return wrapper;
+    fn(reinterpret_cast<const uint8_t*>(input), inputSize, reinterpret_cast<uint8_t*>(output), &ctx, height);
 }
+
+// --------------------------------
+// variant: astrobwt
+// --------------------------------
+extern "C" MODULE_API void astrobwt_export(CryptonightContextWrapper* wrapper, const char* input, unsigned char *output, size_t inputSize, uint32_t variant, uint64_t height)
+{
+    auto ctx = wrapper->ctx;
+    const xmrig::cn_hash_fun fn = get_astrobwt_fn(variant);
+
+    fn(reinterpret_cast<const uint8_t*>(input), inputSize, reinterpret_cast<uint8_t*>(output), &ctx, height);
+}
+
+// --------------------------------
+// variant: KangarooTwelve k12
+// --------------------------------
+extern "C" MODULE_API void k12_export(CryptonightContextWrapper* wrapper, const char* input, unsigned char *output, size_t inputSize, uint32_t variant, uint64_t height)
+{
+    
+	KangarooTwelve((const unsigned char *)(input), inputSize, (unsigned char *)output, 32, 0, 0);
+}
+
+// --------------------------------
+// variant: kawpow
+// --------------------------------
+extern "C" MODULE_API void kawpow_export(CryptonightContextWrapper* wrapper, const char* input, unsigned char *output, size_t inputSize, uint32_t variant, uint64_t height)
+{
+
+
+	
+}
+
+
+
+
+
+
+
 
 extern "C" MODULE_API void randomx_free_cache_export(RandomXCacheWrapper *wrapper)
 {
     delete wrapper;
 }
 
-extern "C" MODULE_API RandomXVmWrapper *randomx_create_vm_export(randomx_cache *cache)
-{
-    int flags = RANDOMX_FLAG_LARGE_PAGES | RANDOMX_FLAG_JIT;
 
-    auto mem = new xmrig::VirtualMemory(max_mem_size, false, false, 0, 4096);
-    auto vm = randomx_create_vm(static_cast<randomx_flags>(flags), cache, nullptr, mem->scratchpad());
 
-    if (!vm)
-        vm = randomx_create_vm(static_cast<randomx_flags>(flags - RANDOMX_FLAG_LARGE_PAGES), cache, nullptr, mem->scratchpad());
 
-    if (!vm)
-        return nullptr;
 
-    auto wrapper = new RandomXVmWrapper(mem, vm);
-    return wrapper;
-}
+
 
 extern "C" MODULE_API void randomx_free_vm_export(RandomXVmWrapper *wrapper)
 {
     delete wrapper;
-}
-
-extern "C" MODULE_API void randomx_set_vm_cache_export(RandomXVmWrapper *wrapper, RandomXCacheWrapper *cacheWrapper)
-{
-    randomx_vm_set_cache(wrapper->vm, cacheWrapper->cache);
-}
-
-extern "C" MODULE_API void randomx_export(RandomXVmWrapper* wrapper, const char* input, unsigned char *output, size_t inputSize, uint32_t variant, uint64_t height)
-{
-    auto vm = wrapper->vm;
-
-    switch (variant) {
-      case 1:  defyx_calculate_hash  (vm, reinterpret_cast<const uint8_t*>(input), inputSize, reinterpret_cast<uint8_t*>(output));
-               break;
-      default: randomx_calculate_hash(vm, reinterpret_cast<const uint8_t*>(input), inputSize, reinterpret_cast<uint8_t*>(output));
-    }
 }

@@ -31,7 +31,7 @@
 #include <tchar.h>
 
 
-//#include "base/io/log/Log.h"
+#include "base/io/log/Log.h"
 #include "crypto/common/portable/mm_malloc.h"
 #include "crypto/common/VirtualMemory.h"
 
@@ -123,10 +123,10 @@ static BOOL ObtainLockPagesPrivilege() {
 
     BOOL result = FALSE;
     if (LsaOpenPolicy(nullptr, &attributes, POLICY_ALL_ACCESS, &handle) == 0) {
-        LSA_UNICODE_STRING str = StringToLsaUnicodeString(SE_LOCK_MEMORY_NAME);
+        LSA_UNICODE_STRING str = StringToLsaUnicodeString(_T(SE_LOCK_MEMORY_NAME));
 
         if (LsaAddAccountRights(handle, user->User.Sid, &str, 1) == 0) {
-            //LOG_NOTICE("Huge pages support was successfully enabled, but reboot required to use it");
+            LOG_NOTICE("Huge pages support was successfully enabled, but reboot required to use it");
             result = TRUE;
         }
 
@@ -156,9 +156,25 @@ bool xmrig::VirtualMemory::isHugepagesAvailable()
 }
 
 
-void *xmrig::VirtualMemory::allocateExecutableMemory(size_t size)
+bool xmrig::VirtualMemory::isOneGbPagesAvailable()
 {
-    return VirtualAlloc(nullptr, size, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
+    return false;
+}
+
+
+void *xmrig::VirtualMemory::allocateExecutableMemory(size_t size, bool hugePages)
+{
+    void* result = nullptr;
+
+    if (hugePages) {
+        result = VirtualAlloc(nullptr, align(size), MEM_COMMIT | MEM_RESERVE | MEM_LARGE_PAGES, PAGE_EXECUTE_READWRITE);
+    }
+
+    if (!result) {
+        result = VirtualAlloc(nullptr, size, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
+    }
+
+    return result;
 }
 
 
@@ -172,6 +188,12 @@ void *xmrig::VirtualMemory::allocateLargePagesMemory(size_t size)
     }
 
     return mem;
+}
+
+
+void *xmrig::VirtualMemory::allocateOneGbPagesMemory(size_t)
+{
+    return nullptr;
 }
 
 
@@ -201,9 +223,11 @@ void xmrig::VirtualMemory::unprotectExecutableMemory(void *p, size_t size)
 }
 
 
-void xmrig::VirtualMemory::osInit()
+void xmrig::VirtualMemory::osInit(bool hugePages)
 {
-    hugepagesAvailable = TrySetLockPagesPrivilege();
+    if (hugePages) {
+        hugepagesAvailable = TrySetLockPagesPrivilege();
+    }
 }
 
 
@@ -216,6 +240,12 @@ bool xmrig::VirtualMemory::allocateLargePagesMemory()
         return true;
     }
 
+    return false;
+}
+
+bool xmrig::VirtualMemory::allocateOneGbPagesMemory()
+{
+    m_scratchpad = nullptr;
     return false;
 }
 
