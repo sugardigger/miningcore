@@ -57,7 +57,7 @@ namespace Miningcore.Native
         private static readonly CryptonightContextStore ctxsLite = new CryptonightContextStore(cryptonight_alloc_lite_context, "cn-lite");
         private static readonly CryptonightContextStore ctxsHeavy = new CryptonightContextStore(cryptonight_alloc_heavy_context, "cn-heavy");
         private static readonly CryptonightContextStore ctxsPico = new CryptonightContextStore(cryptonight_alloc_pico_context, "cn-pico");
-        //private static readonly CryptonightContextStore ctxsRandomX = new CryptonightContextStore(cryptonight_alloc_randomx_context, "cn-randomx");
+
 
         // RandomX
         private static IntPtr randomxVm;
@@ -67,6 +67,8 @@ namespace Miningcore.Native
 
         // Enable logger logging
         private static readonly ILogger logger = LogManager.GetCurrentClassLogger();
+
+
 
 
         [DllImport("libcryptonight", EntryPoint = "cryptonight_alloc_context_export", CallingConvention = CallingConvention.Cdecl)]
@@ -103,25 +105,6 @@ namespace Miningcore.Native
 
         //[DllImport("libcryptonight", EntryPoint = "cryptonight_alloc_randomx_context_export", CallingConvention = CallingConvention.Cdecl)]
         //private static extern IntPtr cryptonight_alloc_randomx_context();
-
-
-        [DllImport("libcryptonight", EntryPoint = "randomx_create_vm_export", CallingConvention = CallingConvention.Cdecl)]
-        private static extern IntPtr randomx_create_vm(IntPtr cache);
-
-        [DllImport("libcryptonight", EntryPoint = "randomx_free_vm_export", CallingConvention = CallingConvention.Cdecl)]
-        private static extern void randomx_free_vm(IntPtr vm);
-
-        [DllImport("libcryptonight", EntryPoint = "randomx_create_cache_export", CallingConvention = CallingConvention.Cdecl)]
-        private static extern IntPtr randomx_create_cache(int variant, byte* seedHash, uint seedHashSize);
-
-        [DllImport("libcryptonight", EntryPoint = "randomx_free_cache_export", CallingConvention = CallingConvention.Cdecl)]
-        private static extern void randomx_free_cache(IntPtr cache);
-
-        [DllImport("libcryptonight", EntryPoint = "randomx_set_vm_cache_export", CallingConvention = CallingConvention.Cdecl)]
-        private static extern void randomx_set_vm_cache(IntPtr vm, IntPtr cache);
-
-        [DllImport("libcryptonight", EntryPoint = "randomx_export", CallingConvention = CallingConvention.Cdecl)]
-        private static extern int randomx(IntPtr ctx, byte* input, byte* output, uint inputLength, CryptonightVariant variant, ulong height);
 
 
 
@@ -264,6 +247,32 @@ namespace Miningcore.Native
             }
         }
 
+
+
+
+
+
+
+
+        [DllImport("libcryptonight", EntryPoint = "randomx_create_vm_export", CallingConvention = CallingConvention.Cdecl)]
+        private static extern IntPtr randomx_create_vm(IntPtr cache);
+
+        [DllImport("libcryptonight", EntryPoint = "randomx_free_vm_export", CallingConvention = CallingConvention.Cdecl)]
+        private static extern void randomx_free_vm(IntPtr vm);
+
+        [DllImport("libcryptonight", EntryPoint = "randomx_create_cache_export", CallingConvention = CallingConvention.Cdecl)]
+        private static extern IntPtr randomx_create_cache(int variant, byte* seedHash, uint seedHashSize);
+
+        [DllImport("libcryptonight", EntryPoint = "randomx_free_cache_export", CallingConvention = CallingConvention.Cdecl)]
+        private static extern void randomx_free_cache(IntPtr cache);
+
+        [DllImport("libcryptonight", EntryPoint = "randomx_set_vm_cache_export", CallingConvention = CallingConvention.Cdecl)]
+        private static extern void randomx_set_vm_cache(IntPtr vm, IntPtr cache);
+
+        [DllImport("libcryptonight", EntryPoint = "randomx_export", CallingConvention = CallingConvention.Cdecl)]
+        private static extern int randomx(IntPtr ctx, byte* input, byte* output, uint inputLength, CryptonightVariant variant, ulong height);
+
+
         /// <summary>
         /// Cryptonight Hash (Monero, Monero v7, v8 etc.)
         /// </summary>
@@ -274,8 +283,8 @@ namespace Miningcore.Native
 
             Contract.Requires<ArgumentException>(result.Length >= 32, $"{nameof(result)} must be greater or equal 32 bytes");
 
-            lock(randomxVmCacheCache)
-            {
+            //lock(randomxVmCacheCache)
+            //{
                 if(!randomxVmCacheCache.TryGetValue(seedHash, out var cache))
                 {
                     // Housekeeping
@@ -285,6 +294,8 @@ namespace Miningcore.Native
 
                         var key = randomxVmCacheCache.Keys.First(x => x != seedHash);
 
+                        Console.WriteLine($"Key: {key}");
+
                         var old = randomxVmCacheCache[key];
 
                         //randomx_free_cache(old);
@@ -292,9 +303,9 @@ namespace Miningcore.Native
                     }
 
                     var seedBytes = Encoding.UTF8.GetBytes(seedHash);
-
-                    // Create new VM
-                    fixed(byte* seedBytesPtr = seedBytes)
+                    Console.WriteLine($"seecBytes: {seedBytes}");
+                // Create new VM
+                fixed(byte* seedBytesPtr = seedBytes)
                     {
                         Console.WriteLine("randomx_create_cache");
                         cache = randomx_create_cache((int) variant, seedBytesPtr, (uint) seedBytes.Length);
@@ -322,7 +333,7 @@ namespace Miningcore.Native
                         randomx(randomxVm, input, output, (uint) data.Length, variant, height);
                     }
                 }
-            }
+            //}
 
 
 
