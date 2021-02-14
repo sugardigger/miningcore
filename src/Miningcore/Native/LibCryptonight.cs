@@ -270,6 +270,8 @@ namespace Miningcore.Native
         /// <param name="variant">Algorithm variant</param>
         public static void RandomX(ReadOnlySpan<byte> data, string seedHash, Span<byte> result, CryptonightVariant variant, ulong height)
         {
+            Console.WriteLine("RandomX Lib");
+
             Contract.Requires<ArgumentException>(result.Length >= 32, $"{nameof(result)} must be greater or equal 32 bytes");
 
             lock(randomxVmCacheCache)

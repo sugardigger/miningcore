@@ -9,6 +9,7 @@ using Miningcore.Native;
 using Miningcore.Stratum;
 using Miningcore.Util;
 using NBitcoin.BouncyCastle.Math;
+using NLog;
 using static Miningcore.Native.LibCryptonight;
 using Contract = Miningcore.Contracts.Contract;
 
@@ -33,6 +34,8 @@ namespace Miningcore.Blockchain.Cryptonote
             if(!string.IsNullOrEmpty(blockTemplate.SeedHash))
                 seedHashBytes = blockTemplate.SeedHash.HexToByteArray();
 
+            Console.WriteLine($"Hash: {coin.Hash}");
+
             switch(coin.Hash)
             {
                 case CryptonightHashType.Normal:
@@ -48,6 +51,7 @@ namespace Miningcore.Blockchain.Cryptonote
                     break;
 
                 case CryptonightHashType.RandomX:
+                    
                     hashFunc = LibCryptonight.RandomX;
                     break;
             }
