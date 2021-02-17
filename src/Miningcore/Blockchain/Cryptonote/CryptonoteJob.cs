@@ -53,6 +53,7 @@ namespace Miningcore.Blockchain.Cryptonote
                 case CryptonightHashType.RandomX:
                     
                     hashFunc = LibCryptonight.RandomX;
+                    //hashFunc = LibRandomX.Randomx;
                     break;
             }
         }

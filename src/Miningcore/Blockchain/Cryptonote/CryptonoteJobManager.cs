@@ -78,7 +78,7 @@ namespace Miningcore.Blockchain.Cryptonote
                 var blockTemplate = response.Response;
                 var job = currentJob;
                 var newHash = blockTemplate.Blob.HexToByteArray().Slice(7, 32).ToHexString();
-
+                
                 logger.Debug(()=> $"[JobManager] Block blob: {blockTemplate.Blob}");
                 logger.Debug(()=> $"[JobManager] newHash: {newHash}");
                 logger.Debug(()=> $"[JobManager] SeedHash: {blockTemplate.SeedHash}");
