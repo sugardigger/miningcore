@@ -110,7 +110,6 @@
 
   <ItemGroup>
     <Folder Include="Crypto\Coins\" />
-    <Folder Include="Stats\" />
   </ItemGroup>
 
   <!-- Copy pre-built library binaries on Windows  -->
