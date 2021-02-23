@@ -264,7 +264,8 @@ echo "Building into $BUILDIR"
 dotnet publish -c Release --framework netcoreapp2.1 --runtime linux-x64 --self-contained true -o $BUILDIR
 ````
 
-
+## Minincore Pool Design
+![MiningcorePoolDesign](https://user-images.githubusercontent.com/32671091/108817508-47903f00-75b8-11eb-9a37-d03f141d0feb.jpg)
 
 
 Feel free to discuss ideas/issues with fellow pool operators using our channels: <br>
