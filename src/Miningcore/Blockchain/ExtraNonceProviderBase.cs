@@ -3,6 +3,13 @@ using System.Security.Cryptography;
 
 namespace Miningcore.Blockchain
 {
+
+    public interface IExtraNonceProvider
+    {
+        string Next();
+    }
+
+
     public class ExtraNonceProviderBase : IExtraNonceProvider
     {
         public ExtraNonceProviderBase(int extranonceBytes)
@@ -29,7 +36,6 @@ namespace Miningcore.Blockchain
         protected readonly int extranonceBytes;
         protected readonly long nonceMax;
         protected readonly string stringFormat;
-
 
 
         public string Next()

@@ -2,6 +2,14 @@ using System.Collections.Generic;
 
 namespace Miningcore.Blockchain
 {
+
+    // ToDo: move location
+    public static class CoinMetaData
+    {
+        public const string BlockHeightPH = "$height$";
+        public const string BlockHashPH = "$hash$";
+    }
+
     public static class DevDonation
     {
         public const decimal Percent = 0.1m;
@@ -34,9 +42,5 @@ namespace Miningcore.Blockchain
         };
     }
 
-    public static class CoinMetaData
-    {
-        public const string BlockHeightPH = "$height$";
-        public const string BlockHashPH = "$hash$";
-    }
+   
 }

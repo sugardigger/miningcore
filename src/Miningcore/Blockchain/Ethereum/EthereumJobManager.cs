@@ -119,9 +119,7 @@ namespace Miningcore.Blockchain.Ethereum
                 // logger.Info(() => $"Blocktemplate {blockTemplate.Height}-{blockTemplate.Header}");
 
                 var job = currentJob;
-                var isNew = currentJob == null ||
-                    job.BlockTemplate.Height < blockTemplate.Height ||
-                    job.BlockTemplate.Header != blockTemplate.Header;
+                var isNew = currentJob == null || job.BlockTemplate.Height < blockTemplate.Height || job.BlockTemplate.Header != blockTemplate.Header;
 
                 if(isNew)
                 {
@@ -145,14 +143,16 @@ namespace Miningcore.Blockchain.Ethereum
                             validJobs.Remove(key);
                     }
 
-                    currentJob = job;
-
+                    logger.Info(() => $"Detected new block {blockTemplate.Height}");
+                    
                     // update stats
                     BlockchainStats.LastNetworkBlockTime = clock.UtcNow;
                     BlockchainStats.BlockHeight = job.BlockTemplate.Height;
                     BlockchainStats.NetworkDifficulty = job.BlockTemplate.Difficulty;
                     BlockchainStats.NextNetworkTarget = job.BlockTemplate.Target;
                     BlockchainStats.NextNetworkBits = "";
+
+                    currentJob = job;
                 }
 
                 return isNew;

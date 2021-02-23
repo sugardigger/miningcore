@@ -105,11 +105,7 @@ namespace Miningcore.Blockchain.Bitcoin
                 var blockTemplate = response.Response;
                 var job = currentJob;
 
-                var isNew = job == null ||
-                    (blockTemplate != null &&
-                        (job.BlockTemplate?.PreviousBlockhash != blockTemplate.PreviousBlockhash ||
-                        blockTemplate.Height > job.BlockTemplate?.Height));
-
+                var isNew = job == null || (blockTemplate != null && (job.BlockTemplate?.PreviousBlockhash != blockTemplate.PreviousBlockhash || blockTemplate.Height > job.BlockTemplate?.Height));
                 if(isNew)
                     messageBus.NotifyChainHeight(poolConfig.Id, blockTemplate.Height, poolConfig.Template);
 
@@ -124,21 +120,6 @@ namespace Miningcore.Blockchain.Bitcoin
 
                     lock(jobLock)
                     {
-                        if (isNew)
-                        {
-                            if (via != null)
-                                logger.Info(() => $"Detected new block {blockTemplate.Height} via {via}");
-                            else
-                                logger.Info(() => $"Detected new block {blockTemplate.Height}");
-
-                            // update stats
-                            BlockchainStats.LastNetworkBlockTime = clock.UtcNow;
-                            BlockchainStats.BlockHeight = blockTemplate.Height;
-                            BlockchainStats.NetworkDifficulty = job.Difficulty;
-                            BlockchainStats.NextNetworkTarget = blockTemplate.Target;
-                            BlockchainStats.NextNetworkBits = blockTemplate.Bits;
-                        }
-
                         validJobs.Insert(0, job);
 
                         // trim active jobs
@@ -146,20 +127,17 @@ namespace Miningcore.Blockchain.Bitcoin
                             validJobs.RemoveAt(validJobs.Count - 1);
                     }
 
-                    if(isNew)
-                    {
-                        if(via != null)
-                            logger.Info(() => $"Detected new block {blockTemplate.Height} [{via}]");
-                        else
-                            logger.Info(() => $"Detected new block {blockTemplate.Height}");
+                    if(via != null)
+                        logger.Info(() => $"Detected new block {blockTemplate.Height} [{via}]");
+                    else
+                        logger.Info(() => $"Detected new block {blockTemplate.Height}");
 
-                        // update stats
-                        BlockchainStats.LastNetworkBlockTime = clock.UtcNow;
-                        BlockchainStats.BlockHeight = blockTemplate.Height;
-                        BlockchainStats.NetworkDifficulty = job.Difficulty;
-                        BlockchainStats.NextNetworkTarget = blockTemplate.Target;
-                        BlockchainStats.NextNetworkBits = blockTemplate.Bits;
-                    }
+                    // update stats
+                    BlockchainStats.LastNetworkBlockTime = clock.UtcNow;
+                    BlockchainStats.BlockHeight = blockTemplate.Height;
+                    BlockchainStats.NetworkDifficulty = job.Difficulty;
+                    BlockchainStats.NextNetworkTarget = blockTemplate.Target;
+                    BlockchainStats.NextNetworkBits = blockTemplate.Bits;
 
                     currentJob = job;
                 }
@@ -216,8 +194,7 @@ namespace Miningcore.Blockchain.Bitcoin
             return responseData;
         }
 
-        public override async ValueTask<Share> SubmitShareAsync(StratumClient worker, object submission,
-            double stratumDifficultyBase, CancellationToken ct)
+        public override async ValueTask<Share> SubmitShareAsync(StratumClient worker, object submission, double stratumDifficultyBase, CancellationToken ct)
         {
             Contract.RequiresNonNull(worker, nameof(worker));
             Contract.RequiresNonNull(submission, nameof(submission));
@@ -240,6 +217,8 @@ namespace Miningcore.Blockchain.Bitcoin
             if(string.IsNullOrEmpty(workerValue))
                 throw new StratumException(StratumError.Other, "missing or invalid workername");
 
+
+            // Start BitcoinJob
             BitcoinJob job;
 
             lock(jobLock)
@@ -255,7 +234,7 @@ namespace Miningcore.Blockchain.Bitcoin
             var minerName = split[0];
             var workerName = split.Length > 1 ? split[1] : null;
 
-            // validate & process
+            // validate & process Share
             var (share, blockHex) = job.ProcessShare(worker, extraNonce2, nTime, nonce, versionBits);
 
             // enrich share with common data

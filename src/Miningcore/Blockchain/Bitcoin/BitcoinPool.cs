@@ -1,23 +1,3 @@
-/*
-Copyright 2017 Coin Foundry (coinfoundry.org)
-Authors: Oliver Weichhold (oliver@weichhold.com)
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
-associated documentation files (the "Software"), to deal in the Software without restriction,
-including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense,
-and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so,
-subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all copies or substantial
-portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT
-LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
-
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -57,6 +37,7 @@ namespace Miningcore.Blockchain.Bitcoin
             IMessageBus messageBus) :
             base(ctx, serializerSettings, cf, statsRepo, mapper, clock, messageBus)
         {
+            // Inherate from PoolBase
         }
 
         protected object currentJobParams;
@@ -167,7 +148,6 @@ namespace Miningcore.Blockchain.Bitcoin
 
                 // check age of submission (aged submissions are usually caused by high server load)
                 var requestAge = clock.UtcNow - tsRequest.Timestamp.UtcDateTime;
-
                 if(requestAge > maxShareAge)
                 {
                     logger.Warn(() => $"[{client.ConnectionId}] Dropping stale share submission request (server overloaded?)");
@@ -281,8 +261,7 @@ namespace Miningcore.Blockchain.Bitcoin
             await client.RespondAsync(result, request.Id);
         }
 
-        private void ConfigureVersionRolling(StratumClient client, BitcoinWorkerContext context,
-            Dictionary<string, JToken> extensionParams, Dictionary<string, object> result)
+        private void ConfigureVersionRolling(StratumClient client, BitcoinWorkerContext context, Dictionary<string, JToken> extensionParams, Dictionary<string, object> result)
         {
             //var requestedBits = extensionParams[BitcoinStratumExtensions.VersionRollingBits].Value<int>();
             uint requestedMask = BitcoinConstants.VersionRollingPoolMask;
@@ -300,8 +279,7 @@ namespace Miningcore.Blockchain.Bitcoin
             logger.Info(() => $"[{client.ConnectionId}] Using version-rolling mask {result[BitcoinStratumExtensions.VersionRollingMask]}");
         }
 
-        private void ConfigureMinimumDiff(StratumClient client, BitcoinWorkerContext context,
-            Dictionary<string, JToken> extensionParams, Dictionary<string, object> result)
+        private void ConfigureMinimumDiff(StratumClient client, BitcoinWorkerContext context, Dictionary<string, JToken> extensionParams, Dictionary<string, object> result)
         {
             var requestedDiff = extensionParams[BitcoinStratumExtensions.MinimumDiffValue].Value<double>();
 
@@ -375,6 +353,11 @@ namespace Miningcore.Blockchain.Bitcoin
             return result;
         }
 
+
+
+
+        // -------------------------------------------------------------------------------------------------
+        // Overrides 
         #region Overrides
 
         public override void Configure(PoolConfig poolConfig, ClusterConfig clusterConfig)
@@ -509,6 +492,6 @@ namespace Miningcore.Blockchain.Bitcoin
             }
         }
 
-        #endregion // Overrides
+#endregion // Overrides
     }
 }

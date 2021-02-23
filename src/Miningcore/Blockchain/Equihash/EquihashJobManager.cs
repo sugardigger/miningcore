@@ -115,9 +115,7 @@ namespace Miningcore.Blockchain.Equihash
                 if (forceUpdate)
                     lastJobRebroadcast = clock.UtcNow;
 
-                var response = string.IsNullOrEmpty(json) ?
-                    await GetBlockTemplateAsync() :
-                    GetBlockTemplateFromJson(json);
+                var response = string.IsNullOrEmpty(json) ? await GetBlockTemplateAsync() : GetBlockTemplateFromJson(json);
 
                 // may happen if daemon is currently not connected to peers
                 if(response.Error != null)
@@ -129,11 +127,7 @@ namespace Miningcore.Blockchain.Equihash
                 var blockTemplate = response.Response;
                 var job = currentJob;
 
-                var isNew = job == null ||
-                    (blockTemplate != null &&
-                        (job.BlockTemplate?.PreviousBlockhash != blockTemplate.PreviousBlockhash ||
-                        blockTemplate.Height > job.BlockTemplate?.Height));
-
+                var isNew = job == null || (blockTemplate != null && (job.BlockTemplate?.PreviousBlockhash != blockTemplate.PreviousBlockhash || blockTemplate.Height > job.BlockTemplate?.Height));
                 if(isNew)
                     messageBus.NotifyChainHeight(poolConfig.Id, blockTemplate.Height, poolConfig.Template);
 
@@ -146,21 +140,6 @@ namespace Miningcore.Blockchain.Equihash
 
                     lock(jobLock)
                     {
-                        if (isNew)
-                        {
-                            if (via != null)
-                                logger.Info(() => $"Detected new block {blockTemplate.Height} via {via}");
-                            else
-                                logger.Info(() => $"Detected new block {blockTemplate.Height}");
-
-                            // update stats
-                            BlockchainStats.LastNetworkBlockTime = clock.UtcNow;
-                            BlockchainStats.BlockHeight = blockTemplate.Height;
-                            BlockchainStats.NetworkDifficulty = job.Difficulty;
-                            BlockchainStats.NextNetworkTarget = blockTemplate.Target;
-                            BlockchainStats.NextNetworkBits = blockTemplate.Bits;
-                        }
-
                         validJobs.Insert(0, job);
 
                         // trim active jobs
@@ -168,20 +147,17 @@ namespace Miningcore.Blockchain.Equihash
                             validJobs.RemoveAt(validJobs.Count - 1);
                     }
 
-                    if(isNew)
-                    {
-                        if(via != null)
-                            logger.Info(() => $"Detected new block {blockTemplate.Height} [{via}]");
-                        else
-                            logger.Info(() => $"Detected new block {blockTemplate.Height}");
+                    if(via != null)
+                        logger.Info(() => $"Detected new block {blockTemplate.Height} [{via}]");
+                    else
+                        logger.Info(() => $"Detected new block {blockTemplate.Height}");
 
-                        // update stats
-                        BlockchainStats.LastNetworkBlockTime = clock.UtcNow;
-                        BlockchainStats.BlockHeight = blockTemplate.Height;
-                        BlockchainStats.NetworkDifficulty = job.Difficulty;
-                        BlockchainStats.NextNetworkTarget = blockTemplate.Target;
-                        BlockchainStats.NextNetworkBits = blockTemplate.Bits;
-                    }
+                    // update stats
+                    BlockchainStats.LastNetworkBlockTime = clock.UtcNow;
+                    BlockchainStats.BlockHeight = blockTemplate.Height;
+                    BlockchainStats.NetworkDifficulty = job.Difficulty;
+                    BlockchainStats.NextNetworkTarget = blockTemplate.Target;
+                    BlockchainStats.NextNetworkBits = blockTemplate.Bits;
 
                     currentJob = job;
                 }
