@@ -101,9 +101,10 @@ namespace Miningcore.Blockchain.Equihash
 
                 case "VRSC":
                     return new VerusCoinJob();
-            }
 
-            return new EquihashJob();
+                default:
+                    return new EquihashJob();
+            }
         }
 
         protected override async Task<(bool IsNew, bool Force)> UpdateJob(bool forceUpdate, string via = null, string json = null)

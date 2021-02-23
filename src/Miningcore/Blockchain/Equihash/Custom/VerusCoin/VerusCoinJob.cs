@@ -65,8 +65,7 @@ namespace Miningcore.Blockchain.Equihash.Custom.VerusCoin
 
     
 
-            protected override (Share Share, string BlockHex) ProcessShareInternal(StratumClient worker, string nonce,
-            uint nTime, string solution)
+        protected override (Share Share, string BlockHex) ProcessShareInternal(StratumClient worker, string nonce, uint nTime, string solution)
         {
             var context = worker.ContextAs<BitcoinWorkerContext>();
             var solutionBytes = (Span<byte>) solution.HexToByteArray();
