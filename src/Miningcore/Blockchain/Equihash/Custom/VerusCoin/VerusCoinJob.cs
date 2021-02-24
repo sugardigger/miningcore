@@ -15,6 +15,8 @@ using NBitcoin.DataEncoders;
 using Transaction = NBitcoin.Transaction;
 using Miningcore.Stratum;
 using NBitcoin.Zcash;
+using Miningcore.Crypto.Hashing.Algorithms;
+using Miningcore.Crypto;
 
 namespace Miningcore.Blockchain.Equihash.Custom.VerusCoin
 {
@@ -62,9 +64,6 @@ namespace Miningcore.Blockchain.Equihash.Custom.VerusCoin
             return blockHeader.ToBytes();
         }
 
-
-    
-
         protected override (Share Share, string BlockHex) ProcessShareInternal(StratumClient worker, string nonce, uint nTime, string solution)
         {
             var context = worker.ContextAs<BitcoinWorkerContext>();
@@ -81,10 +80,14 @@ namespace Miningcore.Blockchain.Equihash.Custom.VerusCoin
             
             solutionBytes.CopyTo(headerSolutionBytes.Slice(140));
 
+
+            // protected static IHashAlgorithm headerHasherverus = new Verushash();
+            // headerHasherverus.Digest(headerSolutionBytes, headerHash, headerSolutionBytes.Length);
+
             // hash block-header
             Span<byte> headerHash = stackalloc byte[32];
-     
-            headerHasherverus.Digest(headerSolutionBytes, headerHash, headerSolutionBytes.Length);
+            // Hash Data : Digest(input, output, data.Length);
+            new Verushash().Digest(headerSolutionBytes, headerHash, headerSolutionBytes.Length);
             var headerValue = new uint256(headerHash);
 
             // calc share-diff

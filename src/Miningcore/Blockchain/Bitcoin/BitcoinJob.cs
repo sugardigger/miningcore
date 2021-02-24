@@ -67,17 +67,11 @@ namespace Miningcore.Blockchain.Bitcoin
 
         protected virtual void BuildMerkleBranches()
         {
-            var transactionHashes = BlockTemplate.Transactions
-                .Select(tx => (tx.TxId ?? tx.Hash)
-                    .HexToByteArray()
-                    .ReverseInPlace())
-                .ToArray();
+            var transactionHashes = BlockTemplate.Transactions.Select(tx => (tx.TxId ?? tx.Hash).HexToByteArray().ReverseInPlace()).ToArray();
 
             mt = new MerkleTree(transactionHashes);
 
-            merkleBranchesHex = mt.Steps
-                .Select(x => x.ToHexString())
-                .ToArray();
+            merkleBranchesHex = mt.Steps.Select(x => x.ToHexString()).ToArray();
         }
 
         protected virtual void BuildCoinbase()
@@ -85,16 +79,10 @@ namespace Miningcore.Blockchain.Bitcoin
             // generate script parts
             var sigScriptInitial = GenerateScriptSigInitial();
             var sigScriptInitialBytes = sigScriptInitial.ToBytes();
-
-            var sigScriptLength = (uint) (
-                sigScriptInitial.Length +
-                extraNoncePlaceHolderLength +
-                scriptSigFinalBytes.Length);
+            var sigScriptLength = (uint) (sigScriptInitial.Length + extraNoncePlaceHolderLength + scriptSigFinalBytes.Length);
 
             // output transaction
-            txOut = coin.HasMasterNodes ?
-                CreateMasternodeOutputTransaction() :
-                (coin.HasPayee ? CreatePayeeOutputTransaction() : CreateOutputTransaction());
+            txOut = coin.HasMasterNodes ? CreateMasternodeOutputTransaction() : (coin.HasPayee ? CreatePayeeOutputTransaction() : CreateOutputTransaction());
 
             // build coinbase initial
             using(var stream = new MemoryStream())
@@ -314,8 +302,7 @@ namespace Miningcore.Blockchain.Bitcoin
             return blockHeader.ToBytes();
         }
 
-        protected virtual (Share Share, string BlockHex) ProcessShareInternal(
-            StratumClient worker, string extraNonce2, uint nTime, uint nonce, uint? versionBits)
+        protected virtual (Share Share, string BlockHex) ProcessShareInternal(StratumClient worker, string extraNonce2, uint nTime, uint nonce, uint? versionBits)
         {
             var context = worker.ContextAs<BitcoinWorkerContext>();
             var extraNonce1 = context.ExtraNonce1;

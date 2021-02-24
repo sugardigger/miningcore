@@ -26,7 +26,7 @@ namespace Miningcore.Blockchain.Equihash
     {
         protected IMasterClock clock;
         protected static IHashAlgorithm headerHasher = new Sha256D();
-		protected static IHashAlgorithm headerHasherverus = new Verushash();
+		//protected static IHashAlgorithm headerHasherverus = new Verushash();
         protected EquihashCoinTemplate coin;
         protected Network network;
 

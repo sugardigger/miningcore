@@ -55,8 +55,7 @@ namespace Miningcore.Blockchain.Equihash
 
             var subsidyResponse = await daemon.ExecuteCmdAnyAsync<ZCashBlockSubsidy>(logger, BitcoinCommands.GetBlockSubsidy);
 
-            var result = await daemon.ExecuteCmdAnyAsync<EquihashBlockTemplate>(logger,
-                BitcoinCommands.GetBlockTemplate, extraPoolConfig?.GBTArgs ?? (object) getBlockTemplateParams);
+            var result = await daemon.ExecuteCmdAnyAsync<EquihashBlockTemplate>(logger, BitcoinCommands.GetBlockTemplate, extraPoolConfig?.GBTArgs ?? (object) getBlockTemplateParams);
 
             if(subsidyResponse.Error == null && result.Error == null && result.Response != null)
                 result.Response.Subsidy = subsidyResponse.Response;
@@ -136,8 +135,7 @@ namespace Miningcore.Blockchain.Equihash
                 {
                     job = CreateJob();
 
-                    job.Init(blockTemplate, NextJobId(),
-                        poolConfig, clusterConfig, clock, poolAddressDestination, network, solver);
+                    job.Init(blockTemplate, NextJobId(), poolConfig, clusterConfig, clock, poolAddressDestination, network, solver);
 
                     lock(jobLock)
                     {
