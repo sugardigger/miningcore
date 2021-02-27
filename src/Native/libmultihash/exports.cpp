@@ -53,6 +53,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "libethash/internal.h"
 #include "libethash/ethash.h"
 #include "verushash/verus_hash.h"
+#include "yespower/yespower.h"
 
 extern "C" bool ethash_get_default_dirname(char* strbuf, size_t buffsize);
 
@@ -237,6 +238,56 @@ extern "C" MODULE_API void odocrypt_export(const char* input, char* output, uint
 extern "C" MODULE_API void x16s_export(const char* input, char* output, uint32_t input_len)
 {
     x16s_hash(input, output, input_len);
+}
+
+extern "C" MODULE_API void yespower_export(const char* input, char* output, uint32_t input_len)
+{
+    yespower_hash(input, output, input_len);
+}
+
+extern "C" MODULE_API void yespower_ic_export(const char* input, char* output, uint32_t input_len)
+{
+    yespowerIC_hash(input, output, input_len);
+}
+
+extern "C" MODULE_API void yespower_iots_export(const char* input, char* output, uint32_t input_len)
+{
+    yespowerIOTS_hash(input, output, input_len);
+}
+
+extern "C" MODULE_API void yespower_ltncg_export(const char* input, char* output, uint32_t input_len)
+{
+    yespowerLTNCG_hash(input, output, input_len);
+}
+
+extern "C" MODULE_API void yespower_r16_export(const char* input, char* output, uint32_t input_len)
+{
+    yespowerR16_hash(input, output, input_len);
+}
+
+extern "C" MODULE_API void yespower_res_export(const char* input, char* output, uint32_t input_len)
+{
+    yespowerRES_hash(input, output, input_len);
+}
+
+extern "C" MODULE_API void yespower_sugar_export(const char* input, char* output, uint32_t input_len)
+{
+    yespowerSUGAR_hash(input, output, input_len);
+}
+
+extern "C" MODULE_API void yespower_urx_export(const char* input, char* output, uint32_t input_len)
+{
+    yespowerURX_hash(input, output, input_len);
+}
+
+extern "C" MODULE_API void yespower_litb_export(const char* input, char* output, uint32_t input_len)
+{
+    yespowerLITB_hash(input, output, input_len);
+}
+
+extern "C" MODULE_API void yespower_tide_export(const char* input, char* output, uint32_t input_len)
+{
+    yespowerTIDE_hash(input, output, input_len);
 }
 
 extern "C" MODULE_API bool equihash_verify_200_9_export(const char* header, int header_length, const char* solution, int solution_length, const char *personalization)

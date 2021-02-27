@@ -130,6 +130,36 @@ namespace Miningcore.Native
         [DllImport("libmultihash", EntryPoint = "lyra2rev3_export", CallingConvention = CallingConvention.Cdecl)]
         public static extern int lyra2rev3(byte* input, void* output);
 
+        [DllImport("libmultihash", EntryPoint = "yespower_export", CallingConvention = CallingConvention.Cdecl)]
+        public static extern int yespower(byte* input, void* output, uint inputLength);
+        
+        [DllImport("libmultihash", EntryPoint = "yespower_ic_export", CallingConvention = CallingConvention.Cdecl)]
+        public static extern int yespower_ic(byte* input, void* output, uint inputLength);
+        
+        [DllImport("libmultihash", EntryPoint = "yespower_iots_export", CallingConvention = CallingConvention.Cdecl)]
+        public static extern int yespower_iots(byte* input, void* output, uint inputLength);
+        
+        [DllImport("libmultihash", EntryPoint = "yespower_ltncg_export", CallingConvention = CallingConvention.Cdecl)]
+        public static extern int yespower_ltncg(byte* input, void* output, uint inputLength);
+        
+        [DllImport("libmultihash", EntryPoint = "yespower_r16_export", CallingConvention = CallingConvention.Cdecl)]
+        public static extern int yespower_r16(byte* input, void* output, uint inputLength);
+        
+        [DllImport("libmultihash", EntryPoint = "yespower_res_export", CallingConvention = CallingConvention.Cdecl)]
+        public static extern int yespower_res(byte* input, void* output, uint inputLength);
+        
+        [DllImport("libmultihash", EntryPoint = "yespower_sugar_export", CallingConvention = CallingConvention.Cdecl)]
+        public static extern int yespower_sugar(byte* input, void* output, uint inputLength);
+        
+        [DllImport("libmultihash", EntryPoint = "yespower_urx_export", CallingConvention = CallingConvention.Cdecl)]
+        public static extern int yespower_urx(byte* input, void* output, uint inputLength);
+        
+        [DllImport("libmultihash", EntryPoint = "yespower_litb_export", CallingConvention = CallingConvention.Cdecl)]
+        public static extern int yespower_litb(byte* input, void* output, uint inputLength);
+        
+        [DllImport("libmultihash", EntryPoint = "yespower_tide_export", CallingConvention = CallingConvention.Cdecl)]
+        public static extern int yespower_tide(byte* input, void* output, uint inputLength);
+
         [DllImport("libmultihash", EntryPoint = "equihash_verify_200_9_export", CallingConvention = CallingConvention.Cdecl)]
         public static extern bool equihash_verify_200_9(byte* header, int headerLength, byte* solution, int solutionLength, string personalization);
 

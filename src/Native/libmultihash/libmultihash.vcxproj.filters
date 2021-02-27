@@ -302,6 +302,18 @@
     <ClInclude Include="sha3\sph_panama.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="yespower\insecure_memzero.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="yespower\sha256.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="yespower\sysendian.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="yespower\yespower.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -557,6 +569,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="sha3\panama.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="yespower\yespower-combined.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="yespower\yespower-platform.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
