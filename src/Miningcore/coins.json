@@ -1422,5 +1422,24 @@
         },
         "explorerTxLink": "https://gastracker.io/tx/{0}",
         "explorerAccountLink": "https://gastracker.io/addr/{0}"
+    },
+    "sugarchain": {
+        "name": "SugarChain",
+        "symbol": "SUGAR",
+        "family": "bitcoin",
+        "coinbaseHasher": {
+            "hash": "sha256d"
+        },
+        "headerHasher": {
+            "hash": "yespower_sugar"
+        },
+        "blockHasher": {
+            "hash": "reverse",
+            "args": [ { "hash": "sha256d" } ]
+        },
+        "shareMultiplier": 4194304,
+        "explorerBlockLink": "https://1explorer.sugarchain.org/block/$hash$",
+        "explorerTxLink": "https://1explorer.sugarchain.org/tx/{0}",
+        "explorerAccountLink": "https://1explorer.sugarchain.org/address/{0}"
     }
 }
